@@ -17,3 +17,7 @@ lint: $(VENV)/pyvenv.cfg
 format: $(VENV)/pyvenv.cfg
 	uv run ruff format && \
 	uv run ruff check --fix
+
+.PHONY: pinact
+pinact:
+	pinact run --update --verify
