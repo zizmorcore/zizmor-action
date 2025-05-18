@@ -1,8 +1,65 @@
 # zizmor-action
 
+Run [zizmor] from GitHub Actions!
+
 > [!WARNING]
 > This action is not ready for public use!
 
-Run [zizmor] from GitHub Actions!
+## Quickstart
+
+This section lists a handful of quick-start examples to get you up and
+running with `zizmor` and `zizmor-action`. See the [Inputs](#inputs)
+section for more details on how `zizmor-action` can be configured.
+
+### `zizmor-action` with Github Advanced Security (recommended)
+
+> [!IMPORTANT]
+> This mode requires that your repository is public or that you have
+> [Advanced Security] as a paid feature on your private repository.
+>
+> If neither of these applies to you, you can use `zizmor-action`
+> with `advanced-security: false`; see below for more details.
+
+> [!NOTE]
+> This is the recommended way to use `zizmor-action` as it provides
+> stateful analysis and triage.
+
+`zizmor-action` integrates with GitHub's [Advanced Security]
+by default, giving you access to `zizmor`'s findings via your
+repository's security tab.
+
+```yaml
+name: GitHub Actions Security Analysis with zizmor 🌈
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+permissions: {}
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read # only needed for private repos
+      actions: read # only needed for private repos
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@v0.0.1
+```
+
+
+## Inputs
+
+## Permissions
 
 [zizmor]: https://docs.zizmor.sh
+[Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
