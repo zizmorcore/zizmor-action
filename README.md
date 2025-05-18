@@ -11,6 +11,11 @@ Run [`zizmor`] from GitHub Actions!
   - [Usage with Github Advanced Security (recommended)](#usage-with-github-advanced-security-recommended)
   - [Usage without Github Advanced Security](#usage-without-github-advanced-security)
 - [Inputs](#inputs)
+  - [`inputs`](#inputs)
+  - [`online-audits`](#online-audits)
+  - [`version`](#version)
+  - [`token`](#token)
+  - [`advanced-security`](#advanced-security)
 - [Permissions](#permissions)
 
 ## Quickstart
