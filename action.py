@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env -S uv run --no-project --script
 
 # action.py: bootstrap and run `zizmor` as specified in `action.yml`.
 
