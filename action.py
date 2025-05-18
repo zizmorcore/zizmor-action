@@ -90,7 +90,7 @@ def main():
     # uvx uses `tool@version`, where `version` can be a version or "latest"
     spec = f"zizmor@{version}"
 
-    args = [uvx, spec, "--color=always"]
+    args = [uvx, "--no-managed-python", "--no-python-downloads", spec, "--color=always"]
     if advanced_security:
         args.append("--format=sarif")
     else:
