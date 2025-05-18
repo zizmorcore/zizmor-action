@@ -55,7 +55,9 @@ name: GitHub Actions Security Analysis with zizmor 🌈
 
 on:
   push:
+    branches: ["main"]
   pull_request:
+    branches: ["**"]
 
 permissions: {}
 
@@ -89,7 +91,9 @@ name: GitHub Actions Security Analysis with zizmor 🌈
 
 on:
   push:
+    branches: ["main"]
   pull_request:
+    branches: ["**"]
 
 permissions: {}
 
