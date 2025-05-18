@@ -74,6 +74,11 @@ def main():
     token = _input("token", str)
     advanced_security = _input("advanced-security", _strtobool)
 
+    # Don't allow flag-like inputs.
+    for input in inputs:
+        if input.startswith("-"):
+            _die(f"Invalid input: {input} looks like a flag")
+
     _debug(f"{inputs=} {version=} {advanced_security=}")
 
     uvx = shutil.which("uvx")

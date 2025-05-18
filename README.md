@@ -1,6 +1,6 @@
 # zizmor-action
 
-Run [zizmor] from GitHub Actions!
+Run [`zizmor`] from GitHub Actions!
 
 > [!WARNING]
 > This action is not ready for public use!
@@ -103,7 +103,67 @@ jobs:
 
 ## Inputs
 
+### `inputs`
+
+*Default*: `.`.
+
+`inputs` is a whitespace-separated list of inputs to pass to `zizmor`.
+It defaults to `.` (the current working directory).
+
+This set of inputs can be anything `zizmor` would normally accept as an
+input. For example, you can audit one or more files, directories, or remote
+repositories:
+
+```yaml
+- name: Run zizmor 🌈
+  uses: zizmorcore/zizmor-action@v0.0.1
+  with:
+    inputs: |
+      .github/workflows/fishy.yml
+      my-actions/
+      other-org/other-repo@main
+```
+
+See `zizmor`'s [Input collection] documentation for more information.
+
+### `online-audits`
+
+*Default*: `true`.
+
+`online-audits` controls whether `zizmor` runs online audits. Running without
+`online-audits` is faster but will produce fewer results.
+
+See `zizmor`'s [Audit Rules] documentation for more information on which
+audits are online-only.
+
+### `version`
+
+*Default*: `latest`.
+
+`version` is the version of `zizmor` to use. It must be provided as
+either an exact version (e.g. `v1.7.0`) or the special value `latest`,
+which will always use the latest version of `zizmor`.
+
+### `token`
+
+*Default*: `${{ github.token }}`.
+
+`token` is the GitHub token to use for accessing the GitHub REST API
+during online audits, as well as for uploading results to Advanced Security
+when [`advanced-security`](#advanced-security) is enabled.
+
+### `advanced-security`
+
+*Default*: `true`.
+
+`advanced-security` controls whether `zizmor-action` uses GitHub's
+[Advanced Security] functionality. If set to `false`, `zizmor-action`
+will not upload results to Advanced Security, and will instead
+print them to the console.
+
 ## Permissions
 
-[zizmor]: https://docs.zizmor.sh
+[`zizmor`]: https://docs.zizmor.sh
 [Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
+[Input collection]: https://docs.zizmor.sh/usage/#input-collection
+[Audit Rules]: https://docs.zizmor.sh/audits/
