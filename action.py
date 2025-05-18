@@ -108,10 +108,9 @@ def main():
         env={
             "GH_TOKEN": token,
         },
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=None,
     )
-
-    sys.stderr.buffer.write(result.stderr)
 
     if advanced_security:
         sarif = _tmpfile()
