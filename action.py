@@ -106,7 +106,7 @@ def main():
         capture_output=True,
     )
 
-    sys.stderr.write(result.stderr)
+    sys.stderr.buffer.write(result.stderr)
 
     if result.returncode != 0:
         sys.exit(result.returncode)
@@ -116,7 +116,7 @@ def main():
         sarif.write_bytes(result.stdout)
         _output("sarif-file", str(sarif))
     else:
-        sys.stdout.write(result.stdout)
+        sys.stdout.buffer.write(result.stdout)
 
 
 if __name__ == "__main__":
