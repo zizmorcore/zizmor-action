@@ -7,13 +7,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
-  selftest:
+  selftest-plain:
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
       contents: read
-      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -21,4 +21,6 @@ jobs:
           persist-credentials: false
 
       - uses: ./
+        with:
+          advanced-security: false
 
