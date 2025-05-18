@@ -70,12 +70,12 @@ jobs:
       actions: read # only needed for private repos
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
       - name: Run zizmor 🌈
-        uses: zizmorcore/zizmor-action@v0.0.2
+        uses: zizmorcore/zizmor-action@b2767f4d401a041e2d7b4b92f4c5c205e0e6e38a # v0.0.2
 ```
 
 ### Usage without Github Advanced Security
@@ -105,12 +105,12 @@ jobs:
       actions: read # only needed for private repos
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
       - name: Run zizmor 🌈
-        uses: zizmorcore/zizmor-action@v0.0.2
+        uses: zizmorcore/zizmor-action@b2767f4d401a041e2d7b4b92f4c5c205e0e6e38a # v0.0.2
         with:
           advanced-security: false
 ```
@@ -130,7 +130,7 @@ repositories:
 
 ```yaml
 - name: Run zizmor 🌈
-  uses: zizmorcore/zizmor-action@v0.0.2
+  uses: zizmorcore/zizmor-action@b2767f4d401a041e2d7b4b92f4c5c205e0e6e38a # v0.0.2
   with:
     inputs: |
       .github/workflows/fishy.yml
