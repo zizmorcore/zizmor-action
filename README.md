@@ -33,9 +33,18 @@ section for more details on how `zizmor-action` can be configured.
 > If neither of these applies to you, you can use `zizmor-action`
 > with `advanced-security: false`; see below for more details.
 
+> [!IMPORTANT]
+> In this mode, the action will **not** fail when `zizmor` produces findings.
+> This is because Advanced Security encourages workflows to only fail
+> on internal errors.
+>
+> To use workflow failure as a blocking signal, you can use GitHub's rulesets
+> feature. For more information, see
+> [About code scanning alerts - Pull request check failures for code scanning alerts].
+
 > [!NOTE]
 > This is the recommended way to use `zizmor-action` as it provides
-> stateful analysis and triage.
+> stateful analysis and enables incremental triage.
 
 `zizmor-action` integrates with GitHub's [Advanced Security]
 by default, giving you access to `zizmor`'s findings via your
@@ -110,7 +119,7 @@ jobs:
 
 ### `inputs`
 
-*Default*: `.`.
+*Default*: `.`
 
 `inputs` is a whitespace-separated list of inputs to pass to `zizmor`.
 It defaults to `.` (the current working directory).
@@ -133,7 +142,7 @@ See `zizmor`'s [Input collection] documentation for more information.
 
 ### `online-audits`
 
-*Default*: `true`.
+*Default*: `true`
 
 `online-audits` controls whether `zizmor` runs online audits. Running without
 `online-audits` is faster but will produce fewer results.
@@ -143,7 +152,7 @@ audits are online-only.
 
 ### `version`
 
-*Default*: `latest`.
+*Default*: `latest`
 
 `version` is the version of `zizmor` to use. It must be provided as
 either an exact version (e.g. `v1.7.0`) or the special value `latest`,
@@ -151,7 +160,7 @@ which will always use the latest version of `zizmor`.
 
 ### `token`
 
-*Default*: `${{ github.token }}`.
+*Default*: `${{ github.token }}`
 
 `token` is the GitHub token to use for accessing the GitHub REST API
 during online audits, as well as for uploading results to Advanced Security
@@ -159,7 +168,7 @@ when [`advanced-security`](#advanced-security) is enabled.
 
 ### `advanced-security`
 
-*Default*: `true`.
+*Default*: `true`
 
 `advanced-security` controls whether `zizmor-action` uses GitHub's
 [Advanced Security] functionality. If set to `false`, `zizmor-action`
@@ -170,5 +179,6 @@ print them to the console.
 
 [`zizmor`]: https://docs.zizmor.sh
 [Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
+[About code scanning alerts - Pull request check failures for code scanning alerts]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts#pull-request-check-failures-for-code-scanning-alerts
 [Input collection]: https://docs.zizmor.sh/usage/#input-collection
 [Audit Rules]: https://docs.zizmor.sh/audits/
