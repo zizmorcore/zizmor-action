@@ -12,7 +12,7 @@ jobs:
     permissions:
       contents: write # for branch creation
       pull-requests: write # for pull request creation
-    uses: zizmorcore/.github/.github/workflows/pinact-reusable.yml@main
+    uses: zizmorcore/.github/.github/workflows/pinact-reusable.yml@d73dee93f4ed7d1ffb374d68d83de45d3c4540df
     with:
       extra-inputs: README.md
     secrets:
