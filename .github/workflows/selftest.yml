@@ -101,6 +101,7 @@ jobs:
 
     needs:
       - selftest
+      - selftest-version
       - selftest-plain
       - selftest-plain-gha-hazmat-xfail
       - selftest-plain-gha-hazmat-offline-audits-xfail
