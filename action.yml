@@ -1,0 +1,62 @@
+name: zizmor 🌈
+description: Run zizmor from GitHub Actions
+
+inputs:
+  inputs:
+    description: |
+      The inputs to pass to `zizmor`.
+
+      This should be a whitespace-separated list of inputs. Inputs will
+      be split with shell splitting rules.
+    required: false
+    default: "."
+  online-audits:
+    description: |
+      Whether to run online audits.
+    required: false
+    default: "true"
+  version:
+    description: The version of zizmor to use
+    required: false
+    default: latest
+  token:
+    description: |
+      The GitHub API token to use for both zizmor and
+      GitHub Advanced Security (if the latter is enabled).
+    required: false
+    default: ${{ github.token }}
+  advanced-security:
+    description: |
+      Whether to enable GitHub Advanced Security for zizmor's results.
+
+      This will use the SARIF output format under the hood and will upload the
+      results to the repository's security tab.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
+      with:
+        enable-cache: false
+
+    - name: Run zizmor
+      id: run-zizmor
+      run: |
+        "${GITHUB_ACTION_PATH}/action.py"
+      env:
+        GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
+        GHA_ZIZMOR_ONLINE_AUDITS: ${{ inputs.online-audits }}
+        GHA_ZIZMOR_VERSION: ${{ inputs.version }}
+        GHA_ZIZMOR_TOKEN: ${{ inputs.token }}
+        GHA_ZIZMOR_ADVANCED_SECURITY: ${{ inputs.advanced-security }}
+      shell: bash
+
+    - name: Upload SARIF file to GitHub Advanced Security
+      uses: github/codeql-action/upload-sarif@60168efe1c415ce0f5521ea06d5c2062adbeed1b # v3.28.17
+      if: ${{ inputs.advanced-security == 'true' }}
+      with:
+        sarif_file: ${{ steps.run-zizmor.outputs.sarif-file }}
+        category: zizmor

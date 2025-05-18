@@ -1,0 +1,115 @@
+name: Self-test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  selftest:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        with:
+          advanced-security: true
+
+  selftest-plain:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        with:
+          advanced-security: false
+
+  selftest-plain-gha-hazmat-xfail:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          inputs: "woodruffw/gha-hazmat"
+
+      - name: assert failure
+        env:
+          XFAIL: ${{ steps.zizmor.outcome == 'failure' }}
+          JOB_NAME: ${{ github.job }}
+        run: |
+          echo "xfail ${JOB_NAME}: ${XFAIL}"
+
+          [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
+
+  selftest-plain-gha-hazmat-offline-audits-xfail:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          inputs: "woodruffw/gha-hazmat"
+          online-audits: false
+
+      - name: assert failure
+        env:
+          XFAIL: ${{ steps.zizmor.outcome == 'failure' }}
+          JOB_NAME: ${{ github.job }}
+        run: |
+          echo "xfail ${JOB_NAME}: ${XFAIL}"
+
+          [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
+
+  all-selftests-pass:
+    if: always()
+
+    needs:
+      - selftest
+      - selftest-plain
+      - selftest-plain-gha-hazmat-xfail
+      - selftest-plain-gha-hazmat-offline-audits-xfail
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: check test jobs
+        if: (github.event_name != 'pull_request') || !github.event.pull_request.head.repo.fork
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
+        with:
+          allowed-skips: |
+            selftest
+          jobs: ${{ toJSON(needs) }}
