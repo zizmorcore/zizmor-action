@@ -1,5 +1,5 @@
-name: zizmor 🌈
-description: Run zizmor from GitHub Actions
+name: zizmor-action
+description: Run zizmor from GitHub Actions 🌈
 
 inputs:
   inputs:
