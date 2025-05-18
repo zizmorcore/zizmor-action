@@ -108,15 +108,15 @@ def main():
 
     sys.stderr.buffer.write(result.stderr)
 
-    if result.returncode != 0:
-        sys.exit(result.returncode)
-
     if advanced_security:
         sarif = _tmpfile()
         sarif.write_bytes(result.stdout)
         _output("sarif-file", str(sarif))
     else:
         sys.stdout.buffer.write(result.stdout)
+
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
