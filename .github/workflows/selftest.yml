@@ -110,4 +110,6 @@ jobs:
         if: (github.event_name != 'pull_request') || !github.event.pull_request.head.repo.fork
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
         with:
+          allowed-skips: |
+            selftest
           jobs: ${{ toJSON(needs) }}
