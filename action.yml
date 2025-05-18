@@ -1,6 +1,10 @@
 name: zizmor-action
 description: Run zizmor from GitHub Actions 🌈
 
+branding:
+  icon: "shield"
+  color: "blue"
+
 inputs:
   inputs:
     description: |
