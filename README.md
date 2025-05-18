@@ -5,13 +5,21 @@ Run [zizmor] from GitHub Actions!
 > [!WARNING]
 > This action is not ready for public use!
 
+## Table of Contents
+
+- [Quickstart](#quickstart)
+  - [Usage with Github Advanced Security (recommended)](#usage-with-github-advanced-security-recommended)
+  - [Usage without Github Advanced Security](#usage-without-github-advanced-security)
+- [Inputs](#inputs)
+- [Permissions](#permissions)
+
 ## Quickstart
 
 This section lists a handful of quick-start examples to get you up and
 running with `zizmor` and `zizmor-action`. See the [Inputs](#inputs)
 section for more details on how `zizmor-action` can be configured.
 
-### `zizmor-action` with Github Advanced Security (recommended)
+### Usage with Github Advanced Security (recommended)
 
 > [!IMPORTANT]
 > This mode requires that your repository is public or that you have
@@ -56,6 +64,42 @@ jobs:
         uses: zizmorcore/zizmor-action@v0.0.1
 ```
 
+### Usage without Github Advanced Security
+
+If you can't or don't want to use GitHub's [Advanced Security] functionality,
+you can still use `zizmor-action` without any issues or feature limitations!
+
+To do so, you can set `advanced-security: false`
+and omit the `security-events: write` permission. For example:
+
+```yaml
+name: GitHub Actions Security Analysis with zizmor 🌈
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+permissions: {}
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # only needed for private repos
+      actions: read # only needed for private repos
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@v0.0.1
+        with:
+          advanced-security: false
+```
 
 ## Inputs
 
