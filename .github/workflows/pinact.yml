@@ -3,6 +3,7 @@ name: Update use pins with pinact
 on:
   schedule:
     - cron: "0 16 * * *"
+  workflow_dispatch:
 
 permissions: {}
 
