@@ -221,7 +221,7 @@ The following table summarizes the permissions required and when:
 | ---------- | ----------- | --------------- |
 | `security-events: write` | Required to upload results to [Advanced Security]. | When `advanced-security: true` (the default). |
 | `contents: read` | Required to read the contents of the repository. | When `advanced-security: true` *and* the parent repository is private. |
-| `actions: read` | Required to read the contents of the repository. | When `advanced-security: true` *and* the parent repository is private. |
+| `actions: read` | Required to read the actions of the repository. | When `advanced-security: true` *and* the parent repository is private. |
 
 Or, as a decision tree:
 
