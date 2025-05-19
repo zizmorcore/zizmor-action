@@ -150,6 +150,42 @@ See `zizmor`'s [Input collection] documentation for more information.
 See `zizmor`'s [Audit Rules] documentation for more information on which
 audits are online-only.
 
+### `persona`
+
+*Default*: `regular`
+
+`persona` is the auditing "persona" to apply during audits.
+
+It can be set to one of the following values: `regular` (the default),
+`pedantic`, or `auditor`.
+
+See `zizmor`'s [Using personas] documentation for more information
+on what each persona does.
+
+### `min-severity`
+
+*Default*: none
+
+`min-severity` controls the severity threshold for reported findings;
+findings below the threshold will be ignored.
+
+It can be set to one of the following values: `unknown`, `informational`,
+`low`, `medium`, or `high`.
+
+See `zizmor`'s [Filtering results] documentation for more information.
+
+### `min-confidence`
+
+*Default*: none
+
+`min-confidence` controls the confidence threshold for reported findings;
+findings below the threshold will be ignored.
+
+It can be set to one of the following values: `unknown`, `low`, `medium`,
+or `high`.
+
+See `zizmor`'s [Filtering results] documentation for more information.
+
 ### `version`
 
 *Default*: `latest`
@@ -177,8 +213,32 @@ print them to the console.
 
 ## Permissions
 
+`zizmor-action` requires different permissions depending on how you use it.
+
+The following table summarizes the permissions required and when:
+
+| Permission | Description | Required when? |
+| ---------- | ----------- | --------------- |
+| `security-events: write` | Required to upload results to [Advanced Security]. | When `advanced-security: true` (the default). |
+| `contents: read` | Required to read the contents of the repository. | When `advanced-security: true` *and* the parent repository is private. |
+| `actions: read` | Required to read the actions of the repository. | When `advanced-security: true` *and* the parent repository is private. |
+
+Or, as a decision tree:
+
+```mermaid
+graph TD
+  A["Are you using Advanced Security (the default)?"] -->|No| B@{ shape: diamond, label: "permissions: {}"}
+  A -->|Yes| C[Is your repository public?]
+  C -->|Yes| D@{ shape: diamond, label: "security-events: write"}
+  C -->|No| E@{shape: diamond, label: "actions: read
+contents: read
+security-events: write"}
+```
+
 [`zizmor`]: https://docs.zizmor.sh
 [Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
 [About code scanning alerts - Pull request check failures for code scanning alerts]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts#pull-request-check-failures-for-code-scanning-alerts
 [Input collection]: https://docs.zizmor.sh/usage/#input-collection
 [Audit Rules]: https://docs.zizmor.sh/audits/
+[Using personas]: https://docs.zizmor.sh/usage/#using-personas
+[Filtering results]: https://docs.zizmor.sh/usage/#filtering-results

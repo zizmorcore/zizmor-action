@@ -67,9 +67,36 @@ def _strtobool(v: str) -> bool:
             raise ValueError(f"invalid boolean value: {v}")
 
 
+def _persona(v: str) -> str:
+    if v not in {"regular", "pedantic", "auditor"}:
+        raise ValueError(f"invalid persona: {v}")
+    return v
+
+
+def _min_severity(v: str) -> str | None:
+    if not v:
+        return None
+
+    if v not in {"unknown", "informational", "low", "medium", "high"}:
+        raise ValueError(f"invalid minimum severity: {v}")
+    return v
+
+
+def _min_confidence(v: str) -> str | None:
+    if not v:
+        return None
+
+    if v not in {"unknown", "low", "medium", "high"}:
+        raise ValueError(f"invalid minimum confidence: {v}")
+    return v
+
+
 def main():
     inputs = _input("inputs", shlex.split)
     online_audits = _input("online-audits", _strtobool)
+    persona = _input("persona", _persona)
+    min_severity = _input("min-severity", _min_severity)
+    min_confidence = _input("min-confidence", _min_confidence)
     version = _input("version", str)
     token = _input("token", str)
     advanced_security = _input("advanced-security", _strtobool)
@@ -98,6 +125,14 @@ def main():
 
     if not online_audits:
         args.append("--no-online-audits")
+
+    args.append(f"--persona={persona}")
+
+    if min_severity:
+        args.append(f"--min-severity={min_severity}")
+
+    if min_confidence:
+        args.append(f"--min-confidence={min_confidence}")
 
     args.extend(inputs)
 

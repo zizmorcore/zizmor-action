@@ -19,6 +19,25 @@ inputs:
       Whether to run online audits.
     required: false
     default: "true"
+  persona:
+    description: |
+      The auditing persona to use.
+
+      This can be 'regular' (default), 'pedantic', or 'auditor'.
+    required: false
+    default: "regular"
+  min-severity:
+    description: |
+      The minimum severity to report findings for.
+
+      This can be 'unknown', 'informational', 'low', 'medium', or 'high'.
+    required: false
+  min-confidence:
+    description: |
+      The minimum confidence to report findings for.
+
+      This can be 'unknown', 'low', 'medium', or 'high'.
+    required: false
   version:
     description: The version of zizmor to use
     required: false
@@ -53,6 +72,9 @@ runs:
       env:
         GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
         GHA_ZIZMOR_ONLINE_AUDITS: ${{ inputs.online-audits }}
+        GHA_ZIZMOR_PERSONA: ${{ inputs.persona }}
+        GHA_ZIZMOR_MIN_SEVERITY: ${{ inputs.min-severity }}
+        GHA_ZIZMOR_MIN_CONFIDENCE: ${{ inputs.min-confidence }}
         GHA_ZIZMOR_VERSION: ${{ inputs.version }}
         GHA_ZIZMOR_TOKEN: ${{ inputs.token }}
         GHA_ZIZMOR_ADVANCED_SECURITY: ${{ inputs.advanced-security }}
