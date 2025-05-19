@@ -1,4 +1,4 @@
-# zizmor-action
+# zizmor-action 🌈
 
 Run [`zizmor`] from GitHub Actions!
 
