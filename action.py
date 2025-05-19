@@ -101,7 +101,8 @@ def main():
     token = _input("token", str)
     advanced_security = _input("advanced-security", _strtobool)
 
-    # Don't allow flag-like inputs.
+    # Don't allow flag-like inputs. These won't have an affect anyways
+    # since we delimit with `--`, but we preempt any user temptation to try.
     for input in inputs:
         if input.startswith("-"):
             _die(f"Invalid input: {input} looks like a flag")
@@ -134,6 +135,7 @@ def main():
     if min_confidence:
         args.append(f"--min-confidence={min_confidence}")
 
+    args.append("--")
     args.extend(inputs)
 
     _debug(f"running: {args}")
