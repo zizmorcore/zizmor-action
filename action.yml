@@ -63,6 +63,7 @@ runs:
     - name: Run zizmor
       id: run-zizmor
       run: |
+        gh --version
         "${GITHUB_ACTION_PATH}/action.py"
       env:
         GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
