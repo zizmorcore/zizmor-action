@@ -166,13 +166,12 @@ def _output(name: str, value: str):
 
 def _strtobool(v: str) -> bool:
     v = v.lower()
-    match v:
-        case "true" | "1" | "yes":
-            return True
-        case "false" | "0" | "no":
-            return False
-        case _:
-            raise ValueError(f"invalid boolean value: {v}")
+    if v in ("true", "1", "yes"):
+        return True
+    elif v in ("false", "0", "no"):
+        return False
+    else:
+        raise ValueError(f"invalid boolean value: {v}")
 
 
 def _persona(v: str) -> str:
