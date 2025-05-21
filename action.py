@@ -132,7 +132,7 @@ def _unpack(archive: Path) -> Path:
 
 def _bootstrap(gh: str, version: str, token: str) -> Path:
     triple = _triple()
-    archive = _download(triple, version, token)
+    archive = _download(gh, triple, version, token)
 
     _verify(gh, archive, token)
 
