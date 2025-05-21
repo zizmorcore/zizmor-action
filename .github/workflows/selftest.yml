@@ -11,7 +11,22 @@ permissions: {}
 
 jobs:
   selftest:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-latest
+          - ubuntu-24.04
+          # - ubuntu-22.04
+          - macos-latest
+          - macos-15
+          - macos-14
+          - macos-13
+          # - windows-latest
+          # - windows-2025
+          # - windows-2022
+          # - windows-2019
+
+    runs-on: ${{ matrix.runner }}
     permissions:
       security-events: write
 
@@ -36,7 +51,7 @@ jobs:
       - uses: ./
         with:
           advanced-security: true
-          version: "1.6.0"
+          version: v1.8.0
 
   selftest-plain:
     runs-on: ubuntu-latest

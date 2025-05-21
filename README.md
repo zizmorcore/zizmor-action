@@ -194,6 +194,9 @@ See `zizmor`'s [Filtering results] documentation for more information.
 either an exact version (e.g. `v1.7.0`) or the special value `latest`,
 which will always use the latest version of `zizmor`.
 
+When provided as an exact version, the version must be formatted
+as `vX.Y.Z`, where `X`, `Y`, and `Z` are integers.
+
 ### `token`
 
 *Default*: `${{ github.token }}`

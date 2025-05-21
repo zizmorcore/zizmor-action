@@ -1,9 +1,11 @@
-#!/usr/bin/env -S uv run --no-project --script
+#!/usr/bin/env python
 
 # action.py: bootstrap and run `zizmor` as specified in `action.yml`.
 
+from __future__ import annotations
 
 import os
+import platform
 import shlex
 import shutil
 import subprocess
@@ -24,7 +26,125 @@ def _debug(msg: str):
     print(f"::debug::{msg}", file=sys.stdout)
 
 
-def _input[T](name: str, parser: abc.Callable[[str], T]) -> T:
+def _tmpdir() -> Path:
+    runner_temp = os.getenv("RUNNER_TEMP")
+    if runner_temp is None:
+        _die("RUNNER_TEMP not set")
+    tmpdir = tempfile.mkdtemp(prefix="zizmor-", dir=runner_temp)
+    return Path(tmpdir)
+
+
+def _tmpfile(name: str) -> Path:
+    return _tmpdir() / name
+
+
+def _triple() -> str:
+    uname = platform.uname()
+    if uname.system == "Darwin":
+        if uname.machine == "arm64":
+            return "aarch64-apple-darwin"
+        elif uname.machine == "x86_64":
+            return "x86_64-apple-darwin"
+    elif uname.system == "Linux":
+        if uname.machine == "x86_64":
+            return "x86_64-unknown-linux-gnu"
+        elif uname.machine == "aarch64":
+            return "aarch64-unknown-linux-gnu"
+    elif uname.system == "Windows":
+        if uname.machine == "AMD64":
+            return "x86_64-pc-windows-msvc"
+        # TODO: 32-bit Windows support?
+
+    _die(f"unsupported platform: {uname.system} {uname.machine}")
+
+
+def _download(gh: str, triple: str, version: str, token: str) -> Path:
+    tmpdir = _tmpdir()
+
+    download_args = [
+        gh,
+        "release",
+        "download",
+        "--repo",
+        "zizmorcore/zizmor",
+        "--pattern",
+        f"zizmor-{triple}*",
+        "--dir",
+        str(tmpdir),
+    ]
+
+    if version != "latest":
+        download_args.append(version)
+
+    _debug(f"downloading: {download_args}")
+
+    result = subprocess.run(
+        download_args,
+        capture_output=True,
+        env={
+            "GH_TOKEN": token,
+        },
+    )
+    if result.returncode != 0:
+        _debug(f"download failed: {result.stderr.decode()}")
+        _die(f"failed to download zizmor (triple={triple} version={version})")
+
+    files = list(tmpdir.iterdir())
+    if len(files) != 1:
+        _die(f"expected exactly one file in {tmpdir}, got {len(files)}")
+
+    return files[0]
+
+
+def _verify(gh: str, archive: Path, token: str):
+    verify_args = [
+        gh,
+        "attestation",
+        "verify",
+        "--repo",
+        "zizmorcore/zizmor",
+        str(archive),
+    ]
+
+    _debug(f"verifying: {verify_args}")
+
+    result = subprocess.run(
+        verify_args,
+        capture_output=True,
+        env={
+            "GH_TOKEN": token,
+        },
+    )
+
+    if result.returncode != 0:
+        _debug(f"verification failed: {result.stderr.decode()}")
+        _die(f"failed to verify {archive}")
+
+
+def _unpack(archive: Path) -> Path:
+    tmpdir = _tmpdir()
+    shutil.unpack_archive(archive, tmpdir)
+
+    zizmor = tmpdir / "zizmor"
+    if not zizmor.is_file():
+        _die(f"no zizmor binary found in {archive}")
+
+    return zizmor
+
+
+def _bootstrap(gh: str, version: str, token: str) -> Path:
+    triple = _triple()
+    archive = _download(gh, triple, version, token)
+
+    _verify(gh, archive, token)
+
+    return _unpack(archive)
+
+
+_T = typing.TypeVar("_T")
+
+
+def _input(name: str, parser: abc.Callable[[str], _T]) -> _T:
     """Get input from the user."""
     envname = f"GHA_ZIZMOR_{name.replace('-', '_').upper()}"
     raw = os.getenv(envname)
@@ -35,16 +155,6 @@ def _input[T](name: str, parser: abc.Callable[[str], T]) -> T:
         return parser(raw)
     except ValueError as exc:
         _die(f"couldn't parse input {name}: {exc}")
-
-
-def _tmpfile() -> Path:
-    runner_temp = os.getenv("RUNNER_TEMP")
-    if runner_temp is None:
-        _die("RUNNER_TEMP not set")
-    tmpfile = tempfile.NamedTemporaryFile(
-        delete=False, delete_on_close=False, dir=runner_temp
-    )
-    return Path(tmpfile.name)
 
 
 def _output(name: str, value: str):
@@ -58,13 +168,12 @@ def _output(name: str, value: str):
 
 def _strtobool(v: str) -> bool:
     v = v.lower()
-    match v:
-        case "true" | "1" | "yes":
-            return True
-        case "false" | "0" | "no":
-            return False
-        case _:
-            raise ValueError(f"invalid boolean value: {v}")
+    if v in ("true", "1", "yes"):
+        return True
+    elif v in ("false", "0", "no"):
+        return False
+    else:
+        raise ValueError(f"invalid boolean value: {v}")
 
 
 def _persona(v: str) -> str:
@@ -92,6 +201,10 @@ def _min_confidence(v: str) -> str | None:
 
 
 def main():
+    gh = shutil.which("gh")
+    if gh is None:
+        _die("gh not found in PATH")
+
     inputs = _input("inputs", shlex.split)
     online_audits = _input("online-audits", _strtobool)
     persona = _input("persona", _persona)
@@ -101,6 +214,8 @@ def main():
     token = _input("token", str)
     advanced_security = _input("advanced-security", _strtobool)
 
+    zizmor = _bootstrap(gh, version, token)
+
     # Don't allow flag-like inputs. These won't have an affect anyways
     # since we delimit with `--`, but we preempt any user temptation to try.
     for input in inputs:
@@ -109,16 +224,7 @@ def main():
 
     _debug(f"{inputs=} {version=} {advanced_security=}")
 
-    uvx = shutil.which("uvx")
-    if uvx is None:
-        _die("uvx not found in PATH")
-
-    _debug(f"uvx: {uvx}")
-
-    # uvx uses `tool@version`, where `version` can be a version or "latest"
-    spec = f"zizmor@{version}"
-
-    args = [uvx, spec, "--color=always"]
+    args = [str(zizmor), "--color=always"]
     if advanced_security:
         args.append("--format=sarif")
     else:
@@ -150,7 +256,7 @@ def main():
     )
 
     if advanced_security:
-        sarif = _tmpfile()
+        sarif = _tmpfile("sarif.json")
         sarif.write_bytes(result.stdout)
         _output("sarif-file", str(sarif))
     else:
