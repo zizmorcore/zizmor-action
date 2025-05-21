@@ -50,8 +50,10 @@ def _triple() -> str:
             return "x86_64-unknown-linux-gnu"
         elif uname.machine == "aarch64":
             return "aarch64-unknown-linux-gnu"
-
-    # TODO: Windows
+    elif uname.system == "Windows":
+        if uname.machine == "AMD64":
+            return "x86_64-pc-windows-msvc"
+        # TODO: 32-bit Windows support?
 
     _die(f"unsupported platform: {uname.system} {uname.machine}")
 
@@ -85,7 +87,7 @@ def _download(gh: str, triple: str, version: str, token: str) -> Path:
     )
     if result.returncode != 0:
         _debug(f"download failed: {result.stderr.decode()}")
-        _die(f"failed to download zizmor ({triple=} {version=})")
+        _die(f"failed to download zizmor (triple={triple} version={version})")
 
     files = list(tmpdir.iterdir())
     if len(files) != 1:
