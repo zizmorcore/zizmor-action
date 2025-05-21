@@ -30,18 +30,12 @@ def _tmpdir() -> Path:
     runner_temp = os.getenv("RUNNER_TEMP")
     if runner_temp is None:
         _die("RUNNER_TEMP not set")
-    tmpdir = tempfile.TemporaryDirectory(prefix="zizmor", dir=runner_temp, delete=False)
-    return Path(tmpdir.name)
+    tmpdir = tempfile.mkdtemp(prefix="zizmor-", dir=runner_temp)
+    return Path(tmpdir)
 
 
-def _tmpfile() -> Path:
-    runner_temp = os.getenv("RUNNER_TEMP")
-    if runner_temp is None:
-        _die("RUNNER_TEMP not set")
-    tmpfile = tempfile.NamedTemporaryFile(
-        delete=False, delete_on_close=False, dir=runner_temp
-    )
-    return Path(tmpfile.name)
+def _tmpfile(name: str) -> Path:
+    return _tmpdir() / name
 
 
 def _triple() -> str:
@@ -257,7 +251,7 @@ def main():
     )
 
     if advanced_security:
-        sarif = _tmpfile()
+        sarif = _tmpfile("sarif.json")
         sarif.write_bytes(result.stdout)
         _output("sarif-file", str(sarif))
     else:
