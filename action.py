@@ -56,11 +56,11 @@ def _triple() -> str:
     _die(f"unsupported platform: {uname.system} {uname.machine}")
 
 
-def _download(triple: str, version: str, token: str) -> Path:
+def _download(gh: str, triple: str, version: str, token: str) -> Path:
     tmpdir = _tmpdir()
 
     download_args = [
-        "gh",
+        gh,
         "release",
         "download",
         "--repo",
@@ -94,9 +94,9 @@ def _download(triple: str, version: str, token: str) -> Path:
     return files[0]
 
 
-def _verify(archive: Path, token: str):
+def _verify(gh: str, archive: Path, token: str):
     verify_args = [
-        "gh",
+        gh,
         "attestation",
         "verify",
         "--repo",
@@ -130,11 +130,11 @@ def _unpack(archive: Path) -> Path:
     return zizmor
 
 
-def _bootstrap(version: str, token: str) -> Path:
+def _bootstrap(gh: str, version: str, token: str) -> Path:
     triple = _triple()
     archive = _download(triple, version, token)
 
-    _verify(archive, token)
+    _verify(gh, archive, token)
 
     return _unpack(archive)
 
@@ -200,6 +200,10 @@ def _min_confidence(v: str) -> str | None:
 
 
 def main():
+    gh = shutil.which("gh")
+    if gh is None:
+        _die("gh not found in PATH")
+
     inputs = _input("inputs", shlex.split)
     online_audits = _input("online-audits", _strtobool)
     persona = _input("persona", _persona)
@@ -209,7 +213,7 @@ def main():
     token = _input("token", str)
     advanced_security = _input("advanced-security", _strtobool)
 
-    zizmor = _bootstrap(version, token)
+    zizmor = _bootstrap(gh, version, token)
 
     # Don't allow flag-like inputs. These won't have an affect anyways
     # since we delimit with `--`, but we preempt any user temptation to try.
