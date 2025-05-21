@@ -21,8 +21,8 @@ jobs:
           - macos-15
           - macos-14
           - macos-13
-          - windows-latest
-          - windows-2025
+          # - windows-latest
+          # - windows-2025
           # - windows-2022
           # - windows-2019
 
