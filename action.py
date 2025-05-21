@@ -2,6 +2,7 @@
 
 # action.py: bootstrap and run `zizmor` as specified in `action.yml`.
 
+from __future__ import annotations
 
 import os
 import platform
@@ -144,7 +145,10 @@ def _bootstrap(version: str, token: str) -> Path:
     return _unpack(archive)
 
 
-def _input[T](name: str, parser: abc.Callable[[str], T]) -> T:
+_T = typing.TypeVar("_T")
+
+
+def _input(name: str, parser: abc.Callable[[str], _T]) -> _T:
     """Get input from the user."""
     envname = f"GHA_ZIZMOR_{name.replace('-', '_').upper()}"
     raw = os.getenv(envname)
