@@ -254,7 +254,7 @@ For self-hosted runners, you should install Docker (or a compatible
 container runtime) onto the runner.
 
 For GitHub-hosted runners, you should switch to `ubuntu-latest` or another
-Linux or Windows-based runner that comes with Docker by default. You _may_ be
+Linux-based runner that comes with Docker by default. You _may_ be
 able to use [docker/setup-docker-action] to install Docker on other runners,
 but this is **not officially supported** by this action.
 

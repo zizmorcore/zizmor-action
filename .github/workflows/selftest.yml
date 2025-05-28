@@ -11,11 +11,7 @@ permissions: {}
 
 jobs:
   selftest:
-    strategy:
-      matrix:
-        runner: [ubuntu-latest, windows-latest]
-
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     permissions:
       security-events: write
 
