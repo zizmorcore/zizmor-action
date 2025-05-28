@@ -60,15 +60,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install uv
-      uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
-      with:
-        enable-cache: false
-
     - name: Run zizmor
       id: run-zizmor
       run: |
-        "${GITHUB_ACTION_PATH}/action.py"
+        "${GITHUB_ACTION_PATH}/action.sh"
       env:
         GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
         GHA_ZIZMOR_ONLINE_AUDITS: ${{ inputs.online-audits }}
