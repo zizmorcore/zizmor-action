@@ -21,12 +21,13 @@ installed() {
     command -v "${1}" >/dev/null 2>&1
 }
 
-run() {
-    dbg "${@}"
-    "${@}"
+output() {
+    echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
 installed docker || die "missing \`docker\` command"
+
+output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
 
@@ -36,14 +37,16 @@ version_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
 arguments=()
 arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
 
-[[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" == true ]] && arguments+=("--format=sarif")
+if [[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" == "true" ]]; then
+    arguments+=("--format=sarif")
+    output "sarif-file" "${output}"
+fi
+
 [[ "${GHA_ZIZMOR_ONLINE_AUDITS}" == "true" ]] || arguments+=("--no-online-audits")
 [[ -n "${GHA_ZIZMOR_MIN_SEVERITY}" ]] && arguments+=("--min-severity=${GHA_ZIZMOR_MIN_SEVERITY}")
 [[ -n "${GHA_ZIZMOR_MIN_CONFIDENCE}" ]] && arguments+=("--min-confidence=${GHA_ZIZMOR_MIN_CONFIDENCE}")
 
 image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION}"
-
-output="${RUNNER_TEMP}/zizmor"
 
 # Notes:
 # - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
@@ -70,3 +73,4 @@ docker run \
     -- \
     ${GHA_ZIZMOR_INPUTS} \
         | tee "${output}"
+
