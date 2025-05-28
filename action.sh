@@ -25,7 +25,7 @@ output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed docker || die "missing \`docker\` command"
+installed docker || die "Cannot run this action without Docker"
 
 output="${RUNNER_TEMP}/zizmor"
 
