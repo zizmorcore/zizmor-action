@@ -8,6 +8,10 @@ dbg() {
     echo "::debug::${*}"
 }
 
+warn() {
+    echo "::warning::${*}"
+}
+
 err() {
     echo "::error::${*}"
 }
@@ -26,6 +30,8 @@ output() {
 }
 
 installed docker || die "Cannot run this action without Docker"
+
+[[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
 
 output="${RUNNER_TEMP}/zizmor"
 
