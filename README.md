@@ -3,7 +3,9 @@
 Run [`zizmor`] from GitHub Actions!
 
 > [!WARNING]
-> This action is not ready for public use!
+> This action is ready for public use, but it is still in early development.
+> Please report any issues you encounter, and be aware that backwards
+> incompatible changes may be made until a stable version is released.
 
 ## Table of Contents
 
@@ -17,12 +19,15 @@ Run [`zizmor`] from GitHub Actions!
   - [`token`](#token)
   - [`advanced-security`](#advanced-security)
 - [Permissions](#permissions)
+- [Troubleshooting](#troubleshooting)
 
 ## Quickstart
 
 This section lists a handful of quick-start examples to get you up and
 running with `zizmor` and `zizmor-action`. See the [Inputs](#inputs)
 section for more details on how `zizmor-action` can be configured.
+
+If you run into any issues, please see the [Troubleshooting] section!
 
 ### Usage with Github Advanced Security (recommended)
 
@@ -235,6 +240,26 @@ contents: read
 security-events: write"}
 ```
 
+## Troubleshooting
+
+### "Cannot run this action without Docker"
+
+This action uses a container to run `zizmor`, which means that it
+needs access to a container runtime (like Docker).
+
+If you see this error, it _probably_ means that you are running the
+action from a self-hosted runner, or from one of the GitHub-hosted runners
+that does not have Docker installed. For example, the GitHub-hosted
+macOS runners do not have Docker installed by default.
+
+For self-hosted runners, you should install Docker (or a compatible
+container runtime) onto the runner.
+
+For GitHub-hosted runners, you should switch to `ubuntu-latest` or another
+Linux-based runner that comes with Docker by default. You _may_ be
+able to use [docker/setup-docker-action] to install Docker on other runners,
+but this is **not officially supported** by this action.
+
 [`zizmor`]: https://docs.zizmor.sh
 [Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
 [About code scanning alerts - Pull request check failures for code scanning alerts]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts#pull-request-check-failures-for-code-scanning-alerts
@@ -242,3 +267,4 @@ security-events: write"}
 [Audit Rules]: https://docs.zizmor.sh/audits/
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
 [Filtering results]: https://docs.zizmor.sh/usage/#filtering-results
+[docker/setup-docker-action]: https://github.com/docker/setup-docker-action
