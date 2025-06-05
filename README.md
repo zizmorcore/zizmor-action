@@ -3,7 +3,9 @@
 Run [`zizmor`] from GitHub Actions!
 
 > [!WARNING]
-> This action is not ready for public use!
+> This action is ready for public use, but it is still in early development.
+> Please report any issues you encounter, and be aware that backwards
+> incompatible changes may be made until a stable version is released.
 
 ## Table of Contents
 
