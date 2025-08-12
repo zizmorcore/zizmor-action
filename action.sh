@@ -35,7 +35,7 @@ installed docker || die "Cannot run this action without Docker"
 
 output="${RUNNER_TEMP}/zizmor"
 
-version_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
+version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
 [[ "${GHA_ZIZMOR_VERSION}" == "latest" || "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
     || die "'version' must be 'latest' or an exact X.Y.Z version"
@@ -52,7 +52,7 @@ fi
 [[ -n "${GHA_ZIZMOR_MIN_SEVERITY}" ]] && arguments+=("--min-severity=${GHA_ZIZMOR_MIN_SEVERITY}")
 [[ -n "${GHA_ZIZMOR_MIN_CONFIDENCE}" ]] && arguments+=("--min-confidence=${GHA_ZIZMOR_MIN_CONFIDENCE}")
 
-image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION}"
+image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION#v}"
 
 # Notes:
 # - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
