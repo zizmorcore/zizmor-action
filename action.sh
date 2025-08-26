@@ -51,6 +51,7 @@ fi
 [[ "${GHA_ZIZMOR_ONLINE_AUDITS}" == "true" ]] || arguments+=("--no-online-audits")
 [[ -n "${GHA_ZIZMOR_MIN_SEVERITY}" ]] && arguments+=("--min-severity=${GHA_ZIZMOR_MIN_SEVERITY}")
 [[ -n "${GHA_ZIZMOR_MIN_CONFIDENCE}" ]] && arguments+=("--min-confidence=${GHA_ZIZMOR_MIN_CONFIDENCE}")
+[[ -n "${GHA_ZIZMOR_COLOR}"]] && arguments+=("--color=${GHA_ZIZMOR_COLOR}")
 
 image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION#v}"
 
@@ -60,8 +61,6 @@ image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION#v}"
 #   like '.' resolve correctly.
 # - We pass the GitHub token as an environment variable so that zizmor
 #   can run online audits/perform online collection if requested.
-# - We pass FORCE_COLOR=1 so that the output is always colored, even
-#   though we intentionally don't `docker run -it`.
 # - ${GHA_ZIZMOR_INPUTS} is intentionally not quoted, so that
 #   it can expand according to the shell's word-splitting rules.
 #   However, we put it after `--` so that it can't be interpreted
@@ -73,7 +72,6 @@ docker run \
     --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
     --workdir "/workspace" \
     --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
-    --env "FORCE_COLOR=1" \
     "${image}" \
     "${arguments[@]}" \
     -- \
