@@ -51,7 +51,7 @@ fi
 [[ "${GHA_ZIZMOR_ONLINE_AUDITS}" == "true" ]] || arguments+=("--no-online-audits")
 [[ -n "${GHA_ZIZMOR_MIN_SEVERITY}" ]] && arguments+=("--min-severity=${GHA_ZIZMOR_MIN_SEVERITY}")
 [[ -n "${GHA_ZIZMOR_MIN_CONFIDENCE}" ]] && arguments+=("--min-confidence=${GHA_ZIZMOR_MIN_CONFIDENCE}")
-[[ -n "${GHA_ZIZMOR_COLOR}"]] && arguments+=("--color=${GHA_ZIZMOR_COLOR}")
+[[ -n "${GHA_ZIZMOR_COLOR}" ]] && arguments+=("--color=${GHA_ZIZMOR_COLOR}")
 
 image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION#v}"
 
