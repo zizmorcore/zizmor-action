@@ -58,11 +58,9 @@ inputs:
     default: "true"
   color:
     description: |
-      Explicitly control zizmor's colorization behavior.
-
-      This can be 'always' (default), or 'never'.
+      Whether zizmor should output colorized CLI output.
     required: false
-    default: "always"
+    default: "true"
 
 runs:
   using: composite
