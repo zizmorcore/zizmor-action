@@ -220,6 +220,12 @@ when [`advanced-security`](#advanced-security) is enabled.
 will not upload results to Advanced Security, and will instead
 print them to the console.
 
+### `color`
+
+*Default*: `true`
+
+`color` controls whether `zizmor-action` outputs colorized log output.
+
 ## Permissions
 
 `zizmor-action` requires different permissions depending on how you use it.
