@@ -278,3 +278,9 @@ but this is **not officially supported** by this action.
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
 [Filtering results]: https://docs.zizmor.sh/usage/#filtering-results
 [docker/setup-docker-action]: https://github.com/docker/setup-docker-action
+
+## License
+
+This project is licensed under the MIT License.
+
+See the [LICENSE](LICENSE) file for the full licensing terms.
