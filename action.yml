@@ -61,6 +61,12 @@ inputs:
       Whether zizmor should output colorized CLI output.
     required: false
     default: "true"
+  annotations:
+    description: |
+      Whether to emit GitHub workflow command annotations (maps to --format=github).
+      Mutually exclusive with advanced-security: true.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -79,6 +85,7 @@ runs:
         GHA_ZIZMOR_TOKEN: ${{ inputs.token }}
         GHA_ZIZMOR_ADVANCED_SECURITY: ${{ inputs.advanced-security }}
         GHA_ZIZMOR_COLOR: ${{ inputs.color }}
+        GHA_ZIZMOR_ANNOTATIONS: ${{ inputs.annotations }}
       shell: bash
 
     - name: Upload SARIF file to GitHub Advanced Security

@@ -46,6 +46,11 @@ arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
 if [[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" == "true" ]]; then
     arguments+=("--format=sarif")
     output "sarif-file" "${output}"
+    if [[ "${GHA_ZIZMOR_ANNOTATIONS}" == "true" ]]; then
+        warn "Ignoring 'annotations: true' because Advanced Security output format is already set"
+    fi
+elif [[ "${GHA_ZIZMOR_ANNOTATIONS}" == "true" ]]; then
+    arguments+=("--format=github")
 fi
 
 [[ "${GHA_ZIZMOR_ONLINE_AUDITS}" == "true" ]] || arguments+=("--no-online-audits")
@@ -77,4 +82,3 @@ docker run \
     -- \
     ${GHA_ZIZMOR_INPUTS} \
         | tee "${output}"
-

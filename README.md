@@ -18,6 +18,7 @@ Run [`zizmor`] from GitHub Actions!
   - [`version`](#version)
   - [`token`](#token)
   - [`advanced-security`](#advanced-security)
+  - [`annotations`](#annotations)
 - [Permissions](#permissions)
 - [Troubleshooting](#troubleshooting)
 
@@ -219,6 +220,18 @@ when [`advanced-security`](#advanced-security) is enabled.
 [Advanced Security] functionality. If set to `false`, `zizmor-action`
 will not upload results to Advanced Security, and will instead
 print them to the console.
+
+### `annotations`
+
+*Default*: `false`
+
+`annotations` controls whether `zizmor-action` emits GitHub workflow command
+annotations for findings (mapping internally to `--format=github`).
+
+This is mutually exclusive with [`advanced-security`](#advanced-security). If
+both `advanced-security: true` and `annotations: true` are specified, the action
+will prioritize Advanced Security (SARIF upload) and emit a warning that
+annotations were ignored.
 
 ### `color`
 
