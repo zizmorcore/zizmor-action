@@ -11,6 +11,7 @@ permissions: {}
 
 jobs:
   selftest:
+    name: "TEST: basic selftest"
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -25,6 +26,7 @@ jobs:
           advanced-security: true
 
   selftest-version:
+    name: "TEST: specific version of zizmor"
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -39,6 +41,7 @@ jobs:
           version: "1.6.0"
 
   selftest-plain:
+    name: "TEST: emits plan format when 'advanced-security: false'"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -50,6 +53,7 @@ jobs:
           advanced-security: false
 
   selftest-plain-gha-hazmat-xfail:
+    name: "TEST: known findings in woodruffw/gha-hazmat (expected to fail when 'advanced-security: false')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -73,6 +77,7 @@ jobs:
           [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
 
   selftest-plain-gha-hazmat-offline-audits-xfail:
+    name: "TEST: known findings in woodruffw/gha-hazmat with offline audits (expected to fail when 'advanced-security: false')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -96,6 +101,30 @@ jobs:
 
           [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
 
+  selftest-annotations-advanced-security-exclusive-xfail:
+    name: "TEST: 'annotations: true' and 'advanced-security: true' are mutually exclusive"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: true
+          annotations: true
+
+      - name: assert failure
+        env:
+          XFAIL: ${{ steps.zizmor.outcome == 'failure' }}
+          JOB_NAME: ${{ github.job }}
+        run: |
+          echo "xfail ${JOB_NAME}: ${XFAIL}"
+
+          [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
+
   all-selftests-pass:
     if: always()
 
@@ -105,6 +134,7 @@ jobs:
       - selftest-plain
       - selftest-plain-gha-hazmat-xfail
       - selftest-plain-gha-hazmat-offline-audits-xfail
+      - selftest-annotations-advanced-security-exclusive-xfail
 
     runs-on: ubuntu-latest
 
