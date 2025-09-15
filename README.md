@@ -225,13 +225,25 @@ print them to the console.
 
 *Default*: `false`
 
-`annotations` controls whether `zizmor-action` emits GitHub workflow command
-annotations for findings (mapping internally to `--format=github`).
+`annotations` controls whether `zizmor-action` emits GitHub annotations for
+findings. When enabled, `zizmor-action` will use `zizmor`'s support
+for GitHub annotations to create annotations for findings.
 
-This is mutually exclusive with [`advanced-security`](#advanced-security). If
-both `advanced-security: true` and `annotations: true` are specified, the action
-will prioritize Advanced Security (SARIF upload) and emit a warning that
-annotations were ignored.
+> [!WARNING]
+> GitHub imposes **significant limits** on annotations that come from workflows:
+> a single CI step within a workflow can only render 10 annotations.
+> If there are more than 10 findings, only the first 10 will be rendered, and
+> the rest will be logged to the action log but **not** rendered.
+>
+> For more information, see `zizmor`'s
+> [GitHub Annotations](https://docs.zizmor.sh/usage/#github-annotations)
+> documentation.
+
+> [!WARNING]
+> This option is **incompatible** with `advanced-security: true`,
+> which is the default. If you set `annotations: true`, you **must**
+> also set `advanced-security: false`. The action will refuse to run
+> if you do not do this.
 
 ### `color`
 

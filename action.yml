@@ -63,8 +63,12 @@ inputs:
     default: "true"
   annotations:
     description: |
-      Whether to emit GitHub workflow command annotations (maps to --format=github).
-      Mutually exclusive with advanced-security: true.
+      Whether to emit GitHub annotations for zizmor's results.
+
+      This will use GitHub's workflow commands under the hood.
+
+      This option is **mutually exclusive** with `advanced-security: true`.
+      You must explicitly set `advanced-security: false` to enable this option.
     required: false
     default: "false"
 
