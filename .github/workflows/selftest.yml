@@ -101,6 +101,19 @@ jobs:
 
           [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
 
+  selftest-annotations:
+    name: "TEST: 'annotations: true' emits GitHub annotations"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        with:
+          advanced-security: false
+          annotations: true
+
   selftest-annotations-advanced-security-exclusive-xfail:
     name: "TEST: 'annotations: true' and 'advanced-security: true' are mutually exclusive"
     runs-on: ubuntu-latest
@@ -134,6 +147,7 @@ jobs:
       - selftest-plain
       - selftest-plain-gha-hazmat-xfail
       - selftest-plain-gha-hazmat-offline-audits-xfail
+      - selftest-annotations
       - selftest-annotations-advanced-security-exclusive-xfail
 
     runs-on: ubuntu-latest
