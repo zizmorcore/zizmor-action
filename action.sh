@@ -62,6 +62,11 @@ fi
 
 image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION#v}"
 
+docker run \
+    --rm \
+    "${image}" \
+    --version
+
 # Notes:
 # - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
 #   and with /workspace as the working directory, so that user inputs
