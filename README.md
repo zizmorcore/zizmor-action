@@ -296,6 +296,42 @@ Linux-based runner that comes with Docker by default. You _may_ be
 able to use [docker/setup-docker-action] to install Docker on other runners,
 but this is **not officially supported** by this action.
 
+### Changes introduce security alerts but no annotations are shown
+
+> [!NOTE]
+> This is **not** a bug in `zizmor-action` or `zizmor`. It's a quirk of
+> GitHub's handling of SARIF in their Advanced Security feature.
+
+As reported in [#43], GitHub's "Advanced Security" integration is somewhat
+fickle about when it decides to show checks on PRs for code scanning
+alerts.
+
+GitHub's criteria for displaying a check on a PR is documented
+under [SARIF support for code scanning] and
+[Triaging code scanning alerts in pull requests]. The short version is that the
+check will **not** be shown **unless all lines** in the finding are included
+in the PR's diff. This is unintuitive (since findings typically carry context
+that extends beyond the changed lines), but it's how GitHub behaves.
+
+If you hit this behavior, you have a few options:
+
+1. Continue to use `zizmor-action` with `advanced-security: true`,
+   but configure a [ruleset] to prevent PRs from merging until all
+   code scanning alerts are resolved. This is the recommended approach,
+   but you **must** configure it manually &mdash; `zizmor-action` cannot do
+   it for you.
+2. Set `advanced-security: false` and use another output format, like
+   [annotations](#annotations) or the default ("plain") console format
+   (which you get by default when you set `advanced-security: false`).
+   With either of these approaches you lose the stateful tracking and triage
+   of Advanced Security, but you'll also avoid this issue.
+
+    > [!WARNING]
+    > Keep in mind that [annotations](#annotations) also come with
+    > significant limitations, including a hard limit of 10 annotations
+    > per workflow run. See the documentation above for more details.
+
+
 [`zizmor`]: https://docs.zizmor.sh
 [Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
 [About code scanning alerts - Pull request check failures for code scanning alerts]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts#pull-request-check-failures-for-code-scanning-alerts
@@ -304,6 +340,10 @@ but this is **not officially supported** by this action.
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
 [Filtering results]: https://docs.zizmor.sh/usage/#filtering-results
 [docker/setup-docker-action]: https://github.com/docker/setup-docker-action
+[#43]: https://github.com/zizmorcore/zizmor-action/issues/43
+[SARIF support for code scanning]: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#specifying-the-location-for-source-files
+[Triaging code scanning alerts in pull requests]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/triaging-code-scanning-alerts-in-pull-requests?utm_source=chatgpt.com#about-code-scanning-results-on-pull-requests
+[ruleset]: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets#set-code-scanning-merge-protection
 
 ## License
 
