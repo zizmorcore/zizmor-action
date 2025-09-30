@@ -296,7 +296,7 @@ Linux-based runner that comes with Docker by default. You _may_ be
 able to use [docker/setup-docker-action] to install Docker on other runners,
 but this is **not officially supported** by this action.
 
-### Changes introduce security alerts but no annotations are shown
+### Changes introduce security alerts but no PR checks are shown
 
 > [!NOTE]
 > This is **not** a bug in `zizmor-action` or `zizmor`. It's a quirk of
