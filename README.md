@@ -326,10 +326,10 @@ If you hit this behavior, you have a few options:
    With either of these approaches you lose the stateful tracking and triage
    of Advanced Security, but you'll also avoid this issue.
 
-    > [!WARNING]
-    > Keep in mind that [annotations](#annotations) also come with
-    > significant limitations, including a hard limit of 10 annotations
-    > per workflow run. See the documentation above for more details.
+   If you choose to switch to annotations, please keep in mind
+   that annotations also come with significant limitations, including a hard
+   limit of 10 annotations per workflow run. See the documentation above for
+   more details.
 
 
 [`zizmor`]: https://docs.zizmor.sh
