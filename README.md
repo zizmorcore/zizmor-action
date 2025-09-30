@@ -28,7 +28,8 @@ This section lists a handful of quick-start examples to get you up and
 running with `zizmor` and `zizmor-action`. See the [Inputs](#inputs)
 section for more details on how `zizmor-action` can be configured.
 
-If you run into any issues, please see the [Troubleshooting] section!
+If you run into any issues, please see the [Troubleshooting](#troubleshooting)
+section!
 
 ### Usage with Github Advanced Security (recommended)
 
