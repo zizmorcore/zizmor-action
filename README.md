@@ -260,6 +260,10 @@ for GitHub annotations to create annotations for findings.
 
 `config` is the path to a custom `zizmor` configuration file (e.g., `zizmor.yml`).
 
+See the [Configuration - Discovery] documentation for how explicit configuration files interact with `zizmor`'s default configuration loading behavior.
+
+[Configuration - Discovery]: https://docs.zizmor.sh/configuration/#discovery
+
 ## Permissions
 
 `zizmor-action` requires different permissions depending on how you use it.
