@@ -75,8 +75,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      contents: read # only needed for private repos
-      actions: read # only needed for private repos
+      contents: read # only needed for private or internal repos
+      actions: read # only needed for private or internal repos
     steps:
       - name: Checkout repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -110,8 +110,8 @@ jobs:
   zizmor:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # only needed for private repos
-      actions: read # only needed for private repos
+      contents: read # only needed for private or internal repos
+      actions: read # only needed for private or internal repos
     steps:
       - name: Checkout repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
