@@ -212,8 +212,7 @@ which will always use the latest version of `zizmor`.
 *Default*: `${{ github.token }}`
 
 `token` is the GitHub token to use for accessing the GitHub REST API
-during online audits, as well as for uploading results to Advanced Security
-when [`advanced-security`](#advanced-security) is enabled.
+during online audits.
 
 ### `advanced-security`
 

@@ -44,8 +44,7 @@ inputs:
     default: latest
   token:
     description: |
-      The GitHub API token to use for both zizmor and
-      GitHub Advanced Security (if the latter is enabled).
+      The GitHub API token to use for zizmor online-audits (if enabled).
     required: false
     default: ${{ github.token }}
   advanced-security:
@@ -74,7 +73,7 @@ inputs:
   config:
     description: Path to a custom zizmor configuration file Path (e.g., zizmor.yml).
     required: false
-  
+
 
 runs:
   using: composite
