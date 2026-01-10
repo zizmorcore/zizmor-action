@@ -112,5 +112,7 @@ dbg "zizmor exited with code ${exitcode}"
 
 if [[ "${exitcode}" -eq 3 ]]; then
     warn "No inputs were collected by zizmor"
-    [[ "${GHA_ZIZMOR_FAIL_ON_NO_INPUTS}" = "true" ]] && exit "${exitcode}"
+    [[ "${GHA_ZIZMOR_FAIL_ON_NO_INPUTS}" = "false" ]] && exit 0
 fi
+
+exit "${exitcode}"
