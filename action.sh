@@ -2,7 +2,7 @@
 
 # action.sh: run zizmor via Docker
 
-set -euo pipefail
+set -eu
 
 dbg() {
     echo "::debug::${*}"
@@ -106,3 +106,11 @@ docker run \
     -- \
     ${GHA_ZIZMOR_INPUTS} \
         | tee "${output}"
+
+exitcode="${PIPESTATUS[0]}"
+dbg "zizmor exited with code ${exitcode}"
+
+if [[ "${exitcode}" -eq 3 ]]; then
+    warn "No inputs were collected by zizmor"
+    [[ "${GHA_ZIZMOR_FAIL_ON_NO_INPUTS}" = "true" ]] && exit "${exitcode}"
+fi

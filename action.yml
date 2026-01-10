@@ -73,7 +73,18 @@ inputs:
   config:
     description: Path to a custom zizmor configuration file Path (e.g., zizmor.yml).
     required: false
+  fail-on-no-inputs:
+    description: |
+      Whether the action should fail if no inputs are collected by zizmor.
 
+      By default, zizmor will fail if it couldn't collect any inputs to audit.
+      Setting this option to `false` will make the action succeed in such cases,
+      with a warning message instead.
+
+      This input only works with zizmor v1.21.0 and later. Earlier versions
+      will always fail on no inputs.
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -94,6 +105,7 @@ runs:
         GHA_ZIZMOR_COLOR: ${{ inputs.color }}
         GHA_ZIZMOR_ANNOTATIONS: ${{ inputs.annotations }}
         GHA_ZIZMOR_CONFIG: ${{ inputs.config }}
+        GHA_ZIZMOR_FAIL_ON_NO_INPUTS: ${{ inputs.fail-on-no-inputs }}
       shell: bash
 
     - name: Upload SARIF file to GitHub Advanced Security

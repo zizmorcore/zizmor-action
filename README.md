@@ -263,6 +263,19 @@ See the [Configuration - Discovery] documentation for how explicit configuration
 
 [Configuration - Discovery]: https://docs.zizmor.sh/configuration/#discovery
 
+### `fail-on-no-inputs`
+
+*Default*: `true`
+
+`fail-on-no-inputs` controls whether the action fails if no inputs
+were collected by `zizmor`. If set to `false`, the action will
+succeed even if no inputs were found.
+
+> [!IMPORTANT]
+> This input only works with `zizmor v1.21.0` and later. It has no effect
+> on earlier versions of `zizmor`, meaning that the action will always fail
+> if no inputs are found on earlier versions.
+
 ## Permissions
 
 `zizmor-action` requires different permissions depending on how you use it.
