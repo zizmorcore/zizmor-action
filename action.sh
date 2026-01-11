@@ -33,6 +33,14 @@ installed docker || die "Cannot run this action without Docker"
 
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
 
+# Load an associative array of versions from `./support/versions`.
+# Each line is of the form `version digest`.
+declare -A versions
+parent_dir=$(dirname "${GITHUB_ACTION_PATH}")
+while IFS=' ' read -r version digest; do
+    versions["${version}"]="${digest}"
+done < "${parent_dir}/support/versions"
+
 output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
@@ -64,7 +72,17 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
 
-image="ghcr.io/zizmorcore/zizmor:${GHA_ZIZMOR_VERSION#v}"
+normalized_version="${GHA_ZIZMOR_VERSION#v}"
+digest="${versions[${normalized_version}]}"
+
+# We only proceed if we have a digest for the requested version; a lookup
+# failure indicates an unknown version (i.e. either nonsense or a version
+# that was released after this action's last release).
+if [[ -z "${digest}" ]]; then
+    die "Unknown version: ${GHA_ZIZMOR_VERSION}"
+fi
+
+image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
 
 # Notes:
 # - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
