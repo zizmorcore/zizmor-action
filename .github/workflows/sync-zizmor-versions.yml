@@ -1,7 +1,6 @@
 on:
   schedule:
-    # every hour
-    - cron: "0 * * * *"
+    - cron: "0 * * * *" # every hour
   workflow_dispatch:
 
 name: Sync zizmor versions
