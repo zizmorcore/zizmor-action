@@ -73,7 +73,7 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
 fi
 
 normalized_version="${GHA_ZIZMOR_VERSION#v}"
-digest="${versions[${normalized_version}]}"
+digest="${versions[${normalized_version}]:-}"
 
 # We only proceed if we have a digest for the requested version; a lookup
 # failure indicates an unknown version (i.e. either nonsense or a version
