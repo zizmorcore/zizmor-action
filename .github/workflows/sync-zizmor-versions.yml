@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies
-        run: apt install -y skopeo jq
+        run: sudo apt install -y skopeo jq
 
       - name: Sync zizmor versions
         run: ./support/sync-zizmor-versions.sh > ./support/zizmor-versions
