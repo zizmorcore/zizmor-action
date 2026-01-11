@@ -34,6 +34,15 @@ jobs:
           delete-branch: true
           commit-message: Sync zizmor versions
           title: Sync zizmor versions
-          body: This PR was created automatically to sync the zizmor versions used in workflows and other places.
+          body: |
+            :robot: :warning: :robot:
+
+            Changes were detected to the `ghcr.io/zizmorcore/zizmor` image's tags.
+
+            This PR updates the `versions` file with any tag and digest changes.
+
+            Please review manually before merging.
+
+            Cross-reference: <https://ghcr.io/zizmorcore/zizmor>
           assignees: woodruffw
           draft: true
