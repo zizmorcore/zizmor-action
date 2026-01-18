@@ -167,6 +167,46 @@ jobs:
 
           [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
 
+  selftest-fail-on-no-inputs-xfail:
+    name: "TEST: 'fail-on-no-inputs: true' causes failure when no inputs are collected"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          inputs: woodruffw-experiments/empty
+
+      - name: assert failure
+        env:
+          XFAIL: ${{ steps.zizmor.outcome == 'failure' }}
+          JOB_NAME: ${{ github.job }}
+        run: |
+          echo "xfail ${JOB_NAME}: ${XFAIL}"
+
+          [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
+
+  selftest-fail-on-no-inputs-disabled:
+    name: "TEST: 'fail-on-no-inputs: false' does not cause failure when no inputs are collected"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          inputs: woodruffw-experiments/empty
+          fail-on-no-inputs: false
+
   all-selftests-pass:
     if: always()
 
@@ -179,6 +219,8 @@ jobs:
       - selftest-plain-gha-hazmat-offline-audits-xfail
       - selftest-annotations
       - selftest-annotations-advanced-security-exclusive-xfail
+      - selftest-fail-on-no-inputs-xfail
+      - selftest-fail-on-no-inputs-disabled
 
     runs-on: ubuntu-latest
 
