@@ -36,10 +36,9 @@ installed docker || die "Cannot run this action without Docker"
 # Load an associative array of versions from `./support/versions`.
 # Each line is of the form `version digest`.
 declare -A versions
-parent_dir=$(dirname "${GITHUB_ACTION_PATH}")
 while IFS=' ' read -r version digest; do
     versions["${version}"]="${digest}"
-done < "${parent_dir}/support/versions"
+done < "${GITHUB_ACTION_PATH}/support/versions"
 
 output="${RUNNER_TEMP}/zizmor"
 
