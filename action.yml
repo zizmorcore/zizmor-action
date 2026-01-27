@@ -5,6 +5,11 @@ branding:
   icon: "shield"
   color: "blue"
 
+outputs:
+  output-file:
+    description: Filepath to static analysis results in SARIF format"
+    value: ${{ steps.run-zizmor.outputs.sarif-file }}
+
 inputs:
   inputs:
     description: |

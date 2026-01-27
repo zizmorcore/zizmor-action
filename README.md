@@ -21,6 +21,7 @@ Run [`zizmor`] from GitHub Actions!
   - [`annotations`](#annotations)
   - [`color`](#color)
   - [`config`](#config)
+- [Outputs](#outputs)
 - [Permissions](#permissions)
 - [Troubleshooting](#troubleshooting)
 
@@ -275,6 +276,14 @@ succeed even if no inputs were found.
 > This input only works with `zizmor v1.21.0` and later. It has no effect
 > on earlier versions of `zizmor`, meaning that the action will always fail
 > if no inputs are found on earlier versions.
+
+## Outputs
+
+### `output-file`
+
+When `advanced-security: true`, the `output-file` output will contain a filepath
+for `zizmor`'s static analysis results in the SARIF format.
+
 
 ## Permissions
 
