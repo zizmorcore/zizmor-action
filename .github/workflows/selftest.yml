@@ -243,6 +243,7 @@ jobs:
       - selftest-annotations-advanced-security-exclusive-xfail
       - selftest-fail-on-no-inputs-xfail
       - selftest-fail-on-no-inputs-disabled
+      - selftest-output-file-output-is-present-when-advanced-security
 
     runs-on: ubuntu-latest
 
