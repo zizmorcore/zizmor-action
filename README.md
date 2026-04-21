@@ -50,7 +50,7 @@ section!
 >
 > To use workflow failure as a blocking signal, you can use GitHub's rulesets
 > feature. For more information, see
-> [About code scanning alerts - Pull request check failures for code scanning alerts].
+> [Set code scanning merge protection].
 
 > [!NOTE]
 > This is the recommended way to use `zizmor-action` as it provides
@@ -367,7 +367,7 @@ If you hit this behavior, you have a few options:
 
 [`zizmor`]: https://docs.zizmor.sh
 [Advanced Security]: https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
-[About code scanning alerts - Pull request check failures for code scanning alerts]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts#pull-request-check-failures-for-code-scanning-alerts
+[Set code scanning merge protection]: https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/manage-your-configuration/set-code-scanning-merge-protection
 [Input collection]: https://docs.zizmor.sh/usage/#input-collection
 [Audit Rules]: https://docs.zizmor.sh/audits/
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
