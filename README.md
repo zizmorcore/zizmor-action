@@ -155,7 +155,8 @@ See `zizmor`'s [Input collection] documentation for more information.
 *Default*: `true`
 
 > [!NOTE]
-> The default value `true` differs from the zizmor CLI, since it has an API token to use for rate limited checks, whereas the CLI will only perform online audits if you explicitly pass a credential.
+> This input's default is the **opposite** of the `zizmor` CLI default, since every
+> GitHub Actions job receives a GitHub API token by default.
 
 `online-audits` controls whether `zizmor` runs online audits. Running without
 `online-audits` is faster but will produce fewer results.
