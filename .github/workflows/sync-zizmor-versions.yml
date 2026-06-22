@@ -11,6 +11,7 @@ env:
 jobs:
   sync-versions:
     name: Sync zizmor versions
+    if: ${{ github.repository == 'zizmorcore/zizmor-action' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # to create PR branches
