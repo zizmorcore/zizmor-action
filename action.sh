@@ -83,6 +83,10 @@ fi
 
 image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
 
+echo "::group::Pulling zizmor image"
+docker pull "${image}"
+echo "::endgroup::"
+
 # Notes:
 # - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
 #   and with /workspace as the working directory, so that user inputs
