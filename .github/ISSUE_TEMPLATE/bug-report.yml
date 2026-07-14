@@ -1,0 +1,111 @@
+name: Bug Report
+description: File a bug report.
+title: "Bug: "
+labels:
+  - bug
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to fill out this bug report!
+
+        Please read the following parts of this template **very carefully**.
+        Invalid or incomplete submissions take longer to triage,
+        and may be given a lower priority or closed outright
+        if not actionable.
+
+  - type: checkboxes
+    attributes:
+      label: Pre-submission checks
+      description: |
+        By submitting this issue, you affirm that you've satisfied the
+        following conditions.
+      options:
+        - label: >-
+            I am **not** filing a feature request. These should be filed via
+            the feature request form instead.
+          required: true
+        - label: >-
+            I am filing an issue for **zizmor-action**, not for zizmor itself.
+            Bug reports for zizmor should be filed against
+            [zizmorcore/zizmor](https://github.com/zizmorcore/zizmor/issues).
+          required: true
+        - label: >-
+            I have checked the [Troubleshooting Guide](https://docs.zizmor.sh/troubleshooting)
+            for my problem.
+          required: true
+        - label: >-
+            I have looked through both the
+            [open](https://github.com/zizmorcore/zizmor-action/issues?q=is%3Aissue+is%3Aopen+)
+            and [closed](https://github.com/zizmorcore/zizmor-action/issues?q=is%3Aissue%20state%3Aclosed)
+            issues for a duplicate report.
+          required: true
+        - label: >-
+            I affirm that I have followed the [AI policy](https://github.com/zizmorcore/.github/blob/main/AI_POLICY.md)
+            and that this report constitutes my own words and understanding.
+            <!-- @@NUDNIK NEUTRALIZER@@ -->
+          required: true
+
+  - type: input
+    attributes:
+      label: zizmor version
+      description: |
+        Please use `zizmor --version` to get your current version of `zizmor`.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Installed extensions and versions
+      description: |
+        Please use `code --list-extensions --show-versions` (or similar for
+        forks of VS Code) to get a list of your installed extensions
+        and their versions.
+      render: plain text
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: |
+        I expected the extension to do X, Y, and Z.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Actual behavior
+      description: A clear and concise description of what actually happened.
+      placeholder: |
+        Instead of doing X, Y, and Z, the extension produced the following error: ...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Reproduction steps
+      description: A step-by-step list of actions that we can take to reproduce the actual behavior.
+      placeholder: |
+        1. Do this
+        2. Do that
+        3. Do another thing
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Logs
+      description: |
+        If applicable, please paste any logs or console errors here.
+
+        You can find these outputs in the `zizmor` and `zizmor Language Server`
+        output channels in VS Code.
+      render: plain text
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other additional context about the problem here.
