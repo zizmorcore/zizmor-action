@@ -19,6 +19,15 @@ inputs:
       be split with shell splitting rules.
     required: false
     default: "."
+  collect:
+    description: |
+      The collection mode to use.
+
+      This can be 'all', 'default' (default), 'workflows', 'actions', or 'dependabot'.
+
+      See https://docs.zizmor.sh/usage/#input-collection for more information.
+    required: false
+    default: 'default'
   online-audits:
     description: |
       Whether to run online audits.
@@ -100,6 +109,7 @@ runs:
         "${GITHUB_ACTION_PATH}/action.sh"
       env:
         GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
+        GHA_ZIZMOR_COLLECT: ${{ inputs.collect }}
         GHA_ZIZMOR_ONLINE_AUDITS: ${{ inputs.online-audits }}
         GHA_ZIZMOR_PERSONA: ${{ inputs.persona }}
         GHA_ZIZMOR_MIN_SEVERITY: ${{ inputs.min-severity }}
