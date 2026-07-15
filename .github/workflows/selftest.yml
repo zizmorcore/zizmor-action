@@ -245,6 +245,8 @@ jobs:
           advanced-security: false
           collect: actions
 
+      # TODO: Would be nice to grep the input or similar here to confirm we only collected `./action.yml`.
+
   all-selftests-pass:
     if: always()
 
@@ -260,6 +262,7 @@ jobs:
       - selftest-fail-on-no-inputs-xfail
       - selftest-fail-on-no-inputs-disabled
       - selftest-output-file-output-is-present-when-advanced-security
+      - selftest-collect
 
     runs-on: ubuntu-latest
 
