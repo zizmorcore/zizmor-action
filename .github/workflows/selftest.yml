@@ -26,11 +26,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         with:
           advanced-security: true
 
@@ -40,11 +36,7 @@ jobs:
     permissions:
       security-events: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         with:
           advanced-security: true
           version: "1.6.0"
@@ -53,11 +45,7 @@ jobs:
     name: "TEST: nonexistent version of zizmor (expected to fail)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         continue-on-error: true
         with:
@@ -77,11 +65,7 @@ jobs:
     name: "TEST: emits plan format when 'advanced-security: false'"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         with:
           advanced-security: false
 
@@ -89,11 +73,7 @@ jobs:
     name: "TEST: known findings in woodruffw/gha-hazmat (expected to fail when 'advanced-security: false')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         continue-on-error: true
         with:
@@ -113,11 +93,7 @@ jobs:
     name: "TEST: known findings in woodruffw/gha-hazmat with offline audits (expected to fail when 'advanced-security: false')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         continue-on-error: true
         with:
@@ -138,11 +114,7 @@ jobs:
     name: "TEST: 'annotations: true' emits GitHub annotations"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         with:
           advanced-security: false
           annotations: true
@@ -151,11 +123,7 @@ jobs:
     name: "TEST: 'annotations: true' and 'advanced-security: true' are mutually exclusive"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         continue-on-error: true
         with:
@@ -175,11 +143,7 @@ jobs:
     name: "TEST: 'fail-on-no-inputs: true' causes failure when no inputs are collected"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         continue-on-error: true
         with:
@@ -199,11 +163,7 @@ jobs:
     name: "TEST: 'fail-on-no-inputs: false' does not cause failure when no inputs are collected"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         continue-on-error: true
         with:
@@ -218,11 +178,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         with:
           advanced-security: true
@@ -239,11 +195,7 @@ jobs:
     permissions: {}
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./
+      - uses: $
         id: zizmor
         with:
           advanced-security: false
