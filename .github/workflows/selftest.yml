@@ -39,7 +39,7 @@ jobs:
       - uses: $/
         with:
           advanced-security: true
-          version: "1.6.0"
+          version: "1.29.0"
 
   selftest-version-nonexistent-xfail:
     name: "TEST: nonexistent version of zizmor (expected to fail)"
