@@ -30,6 +30,7 @@ tags=$(skopeo list-tags "docker://${IMAGE}" | jq -r '.Tags[]')
 # and emit it as a line in the format:
 # <tag> <digest>
 for tag in ${tags}; do
-    digest=$(skopeo --override-os=linux --override-arch=amd64  inspect "docker://${IMAGE}:${tag}" | jq -r '.Digest')
+    # Retry up to 5 times, since GHCR is unreliable.
+    digest=$(skopeo --override-os=linux --override-arch=amd64 inspect --retry-times=5 "docker://${IMAGE}:${tag}" | jq -r '.Digest')
     echo "${tag} ${digest}"
 done
