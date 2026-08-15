@@ -31,7 +31,7 @@ tags=$(skopeo list-tags "docker://${IMAGE}" | jq -r '.Tags[]')
 # <tag> <digest>
 for tag in ${tags}; do
     # Skip prerelease versions (e.g. 1.30.0rc1, 1.30.0-beta.1)
-    # Only allow "latest" or strict semver (MAJOR.MINOR.PATCH).
+    # Only allow "latest" or strict MAJOR.MINOR.PATCH.
     if [[ "${tag}" != "latest" ]] && ! [[ "${tag}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         continue
     fi
