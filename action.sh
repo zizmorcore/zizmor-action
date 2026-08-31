@@ -72,6 +72,11 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
 
+if [[ -n "${GHA_ZIZMOR_ZIZMOR_CONFIG:-}" ]]; then
+    echo "${GHA_ZIZMOR_ZIZMOR_CONFIG}" > "${RUNNER_TEMP}/zizmor.yml"
+    arguments+=("--config=/zizmor.yml")
+fi
+
 normalized_version="${GHA_ZIZMOR_VERSION#v}"
 digest="${versions[${normalized_version}]:-}"
 
@@ -103,6 +108,7 @@ echo "::endgroup::"
 docker run \
     --rm \
     --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
+    --volume "${RUNNER_TEMP}/zizmor.yml:/zizmor.yml:ro" \
     --workdir "/workspace" \
     --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
     "${image}" \

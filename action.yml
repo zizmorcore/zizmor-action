@@ -87,6 +87,9 @@ inputs:
   config:
     description: Path to a custom zizmor configuration file Path (e.g., zizmor.yml).
     required: false
+  zizmor-config:
+    description: A custom zizmor configuration YAML.
+    required: false
   fail-on-no-inputs:
     description: |
       Whether the action should fail if no inputs are collected by zizmor.
@@ -120,6 +123,7 @@ runs:
         GHA_ZIZMOR_COLOR: ${{ inputs.color }}
         GHA_ZIZMOR_ANNOTATIONS: ${{ inputs.annotations }}
         GHA_ZIZMOR_CONFIG: ${{ inputs.config }}
+        GHA_ZIZMOR_ZIZMOR_CONFIG: ${{ inputs.zizmor-config }}
         GHA_ZIZMOR_FAIL_ON_NO_INPUTS: ${{ inputs.fail-on-no-inputs }}
       shell: bash
 
