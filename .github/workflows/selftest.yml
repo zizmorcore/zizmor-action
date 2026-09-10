@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        # ubuntu-slim has no Docker daemon, but it does ship pipx.
+        # ubuntu-slim has no Docker daemon, but it does ship Python.
         os: [ubuntu-latest, ubuntu-24.04-arm, ubuntu-slim]
     runs-on: ${{ matrix.os }}
     permissions:
@@ -30,18 +30,6 @@ jobs:
       - uses: $/
         with:
           advanced-security: true
-          inputs: ${{ github.repository }}
-
-  selftest-version-latest:
-    name: "TEST: 'version: latest'"
-    runs-on: ubuntu-slim
-    permissions:
-      security-events: write
-    steps:
-      - uses: $/
-        with:
-          advanced-security: true
-          version: "latest"
           inputs: ${{ github.repository }}
 
   selftest-version:
@@ -229,7 +217,6 @@ jobs:
 
     needs:
       - selftest
-      - selftest-version-latest
       - selftest-version
       - selftest-version-nonexistent-xfail
       - selftest-plain
