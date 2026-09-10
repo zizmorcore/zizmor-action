@@ -53,9 +53,14 @@ inputs:
       This can be 'unknown', 'low', 'medium', or 'high'.
     required: false
   version:
-    description: The version of zizmor to use
+    description: |
+      The version of zizmor to use.
+
+      Defaults to `locked`, i.e. the version pinned in this action's
+      `uv.lock`, which Dependabot keeps current. Can also be `latest` for
+      whatever is newest at run time, or an exact `X.Y.Z` version.
     required: false
-    default: latest
+    default: locked
   token:
     description: |
       The GitHub API token to use for zizmor online-audits (if enabled).
@@ -103,6 +108,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
     - name: Run zizmor
       id: run-zizmor
       run: |
