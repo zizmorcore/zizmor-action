@@ -103,11 +103,26 @@ inputs:
 runs:
   using: composite
   steps:
+    # Docker is the preferred bootstrap: it gives us a content-addressable,
+    # multi-arch image that we can check against a known digest. Some runner
+    # images ship the Docker client without a daemon (`ubuntu-slim`), so we
+    # probe for a *usable* daemon rather than just the client.
+    - name: Select bootstrap method
+      id: bootstrap
+      run: |
+        "${GITHUB_ACTION_PATH}/bootstrap.sh"
+      shell: bash
+
+    - name: Install uv
+      if: ${{ steps.bootstrap.outputs.method == 'uv' }}
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
     - name: Run zizmor
       id: run-zizmor
       run: |
         "${GITHUB_ACTION_PATH}/action.sh"
       env:
+        GHA_ZIZMOR_BOOTSTRAP: ${{ steps.bootstrap.outputs.method }}
         GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
         GHA_ZIZMOR_COLLECT: ${{ inputs.collect }}
         GHA_ZIZMOR_ONLINE_AUDITS: ${{ inputs.online-audits }}

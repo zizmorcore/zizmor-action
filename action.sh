@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor via Docker
+# action.sh: run zizmor via Docker, or via uvx when Docker is unavailable
 
 set -eu
 
@@ -29,7 +29,14 @@ output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed docker || die "Cannot run this action without Docker"
+# Selected by bootstrap.sh; `docker` unless the runner has no usable daemon.
+bootstrap="${GHA_ZIZMOR_BOOTSTRAP:-docker}"
+
+case "${bootstrap}" in
+    docker) installed docker || die "Cannot run this action without Docker" ;;
+    uv) installed uv || die "Cannot run this action without Docker or uv" ;;
+    *) die "Unknown bootstrap method: ${bootstrap}" ;;
+esac
 
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
 
@@ -78,38 +85,53 @@ digest="${versions[${normalized_version}]:-}"
 # We only proceed if we have a digest for the requested version; a lookup
 # failure indicates an unknown version (i.e. either nonsense or a version
 # that was released after this action's last release).
+#
+# The uv path has no digest to check, but it shares this check so that both
+# paths accept exactly the same set of versions.
 if [[ -z "${digest}" ]]; then
     die "Unknown version: ${GHA_ZIZMOR_VERSION}"
 fi
 
-image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
-
-echo "::group::Pulling zizmor image"
-docker pull "${image}"
-echo "::endgroup::"
-
-# Notes:
-# - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
-#   and with /workspace as the working directory, so that user inputs
-#   like '.' resolve correctly.
+# Notes, for both paths below:
+# - We run from ${GITHUB_WORKSPACE}, so that user inputs like '.' resolve
+#   correctly.
 # - We pass the GitHub token as an environment variable so that zizmor
 #   can run online audits/perform online collection if requested.
 # - ${GHA_ZIZMOR_INPUTS} is intentionally not quoted, so that
 #   it can expand according to the shell's word-splitting rules.
 #   However, we put it after `--` so that it can't be interpreted
 #   as one or more flags.
-#
-# shellcheck disable=SC2086
-docker run \
-    --rm \
-    --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
-    --workdir "/workspace" \
-    --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
-    "${image}" \
-    "${arguments[@]}" \
-    -- \
-    ${GHA_ZIZMOR_INPUTS} \
-        | tee "${output}"
+if [[ "${bootstrap}" == "docker" ]]; then
+    image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
+
+    echo "::group::Pulling zizmor image"
+    docker pull "${image}"
+    echo "::endgroup::"
+
+    # shellcheck disable=SC2086
+    docker run \
+        --rm \
+        --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
+        --workdir "/workspace" \
+        --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
+        "${image}" \
+        "${arguments[@]}" \
+        -- \
+        ${GHA_ZIZMOR_INPUTS} \
+            | tee "${output}"
+else
+    # uvx resolves the right wheel for the runner's architecture itself.
+    # There's no digest to check here, so we lean on the exact version pin
+    # (and on PyPI's own integrity guarantees) instead.
+    cd "${GITHUB_WORKSPACE}"
+
+    # shellcheck disable=SC2086
+    GH_TOKEN="${GHA_ZIZMOR_TOKEN}" uvx "zizmor@${normalized_version}" \
+        "${arguments[@]}" \
+        -- \
+        ${GHA_ZIZMOR_INPUTS} \
+            | tee "${output}"
+fi
 
 exitcode="${PIPESTATUS[0]}"
 dbg "zizmor exited with code ${exitcode}"

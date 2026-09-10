@@ -329,23 +329,27 @@ security-events: write"}
 
 ## Troubleshooting
 
-### "Cannot run this action without Docker"
+### "Cannot run this action without Docker or uv"
 
-This action uses a container to run `zizmor`, which means that it
-needs access to a container runtime (like Docker).
+This action prefers to run `zizmor` from a container: the image is
+content-addressable, so the action can check it against a known digest,
+and the registry handles multi-arch selection for it.
 
-If you see this error, it _probably_ means that you are running the
-action from a self-hosted runner, or from one of the GitHub-hosted runners
-that does not have Docker installed. For example, the GitHub-hosted
-macOS runners do not have Docker installed by default.
+When the runner has no usable container runtime, the action falls back to
+installing [uv] and running `uvx zizmor@<version>` instead. That covers
+runners without Docker at all, as well as runners like [`ubuntu-slim`],
+which ship the Docker _client_ but no daemon.
 
-For self-hosted runners, you should install Docker (or a compatible
-container runtime) onto the runner.
+If you see this error, then neither path was available &mdash; most likely
+because the `uv` installation step failed. On a self-hosted runner you can
+skip the fallback entirely by installing Docker (or a compatible container
+runtime) onto the runner; [docker/setup-docker-action] may also work on
+other runners, but is **not officially supported** by this action.
 
-For GitHub-hosted runners, you should switch to `ubuntu-latest` or another
-Linux-based runner that comes with Docker by default. You _may_ be
-able to use [docker/setup-docker-action] to install Docker on other runners,
-but this is **not officially supported** by this action.
+> [!NOTE]
+> The fallback has no image digest to check, so it pins the exact `zizmor`
+> version instead and relies on PyPI for artifact integrity. Prefer a runner
+> with a container runtime if that difference matters to you.
 
 ### Changes introduce security alerts but no PR checks are shown
 
@@ -391,6 +395,8 @@ If you hit this behavior, you have a few options:
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
 [Filtering results]: https://docs.zizmor.sh/usage/#filtering-results
 [docker/setup-docker-action]: https://github.com/docker/setup-docker-action
+[uv]: https://docs.astral.sh/uv/
+[`ubuntu-slim`]: https://github.com/actions/runner-images/blob/main/images/ubuntu-slim/ubuntu-slim-Readme.md
 [#43]: https://github.com/zizmorcore/zizmor-action/issues/43
 [SARIF support for code scanning]: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#specifying-the-location-for-source-files
 [Triaging code scanning alerts in pull requests]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/triaging-code-scanning-alerts-in-pull-requests?utm_source=chatgpt.com#about-code-scanning-results-on-pull-requests

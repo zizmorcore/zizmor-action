@@ -20,7 +20,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm]
+        # ubuntu-slim has no Docker daemon, so it exercises the uv fallback.
+        os: [ubuntu-latest, ubuntu-24.04-arm, ubuntu-slim]
     runs-on: ${{ matrix.os }}
     permissions:
       security-events: write
