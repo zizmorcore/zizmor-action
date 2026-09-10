@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor via uv
+# action.sh: run zizmor from a hash-verified wheel
 
 set -eu
 
@@ -29,7 +29,7 @@ output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed uv || die "Cannot run this action without uv"
+installed python3 || die "Cannot run this action without Python"
 
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
 
@@ -37,13 +37,25 @@ output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
+# The default version is the one recorded in `support/zizmor-version`, which
+# the version-sync workflow keeps current; each release of this action
+# therefore pins the zizmor release that was current when it was cut.
+#
+# `latest` is deliberately unsupported: resolving it at run time would make
+# the version of zizmor a workflow runs mutable, which is what pinning is
+# meant to prevent.
 case "${GHA_ZIZMOR_VERSION}" in
-    locked|"") resolution="locked" ;;
-    latest) resolution="latest" ;;
+    pinned|"")
+        zizmor_version="$(< "${GITHUB_ACTION_PATH}/support/zizmor-version")"
+        ;;
+    latest)
+        err "'version: latest' is no longer supported, because it cannot be pinned"
+        die "Use 'pinned' (the default) or an exact X.Y.Z version instead"
+        ;;
     *)
         [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-            || die "'version' must be 'locked', 'latest' or an exact X.Y.Z version"
-        resolution="pinned"
+            || die "'version' must be 'pinned' or an exact X.Y.Z version"
+        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
         ;;
 esac
 
@@ -72,33 +84,37 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
 
-normalized_version="${GHA_ZIZMOR_VERSION#v}"
+lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
+[[ -f "${lockfile}" ]] \
+    || die "No lock for zizmor ${zizmor_version}; it is either nonsense or newer than this action's last release"
 
-zizmor_command=()
-case "${resolution}" in
-    locked)
-        # The default version is the one pinned in this action's uv.lock,
-        # which Dependabot keeps current. `--locked` refuses to re-resolve
-        # if the lockfile and pyproject.toml have drifted apart, and the
-        # lock records a hash for every wheel, so this is verified as well
-        # as pinned.
-        #
-        # The environment goes under RUNNER_TEMP rather than into the
-        # action's own checkout.
-        export UV_PROJECT_ENVIRONMENT="${RUNNER_TEMP}/zizmor-env"
-        zizmor_command=(uv run --project "${GITHUB_ACTION_PATH}" --locked zizmor)
-        ;;
-    latest)
-        zizmor_command=(uvx "zizmor@latest")
-        ;;
-    pinned)
-        zizmor_command=(uvx "zizmor@${normalized_version}")
-        ;;
-esac
+# The lock pins every wheel for this version by hash, so `--require-hashes`
+# gives us the same guarantee the pinned container digests used to. pip picks
+# the wheel matching the runner and verifies it against that set.
+venv="${RUNNER_TEMP}/zizmor-venv"
+bindir="${RUNNER_TEMP}/zizmor-bin"
+rm -rf "${venv}" "${bindir}"
+
+python3 -m venv "${venv}"
+"${venv}/bin/python" -m pip install \
+    --quiet --no-input --disable-pip-version-check \
+    --only-binary=:all: \
+    --require-hashes \
+    --requirement "${lockfile}"
+
+# zizmor's wheels ship a self-contained native executable, so the virtual
+# environment is only a means of getting a verified copy of it onto the
+# runner. Keep the binary, drop everything else.
+mkdir -p "${bindir}"
+cp "${venv}/bin/zizmor" "${bindir}/zizmor"
+rm -rf "${venv}"
+
+"${bindir}/zizmor" --version >/dev/null 2>&1 \
+    || die "zizmor is not self-contained on this runner and cannot run outside its virtual environment"
+
+zizmor_command=("${bindir}/zizmor")
 
 # Notes:
-# - uv resolves the right wheel for the runner's architecture itself, and
-#   an unknown version fails here as a resolution error.
 # - We run from ${GITHUB_WORKSPACE}, so that user inputs like '.' resolve
 #   correctly.
 # - We pass the GitHub token as an environment variable so that zizmor

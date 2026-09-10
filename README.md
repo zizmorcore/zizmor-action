@@ -216,19 +216,27 @@ See `zizmor`'s [Filtering results] documentation for more information.
 
 ### `version`
 
-*Default*: `locked`
+*Default*: `pinned`
 
-`version` is the version of `zizmor` to use. It must be provided as an exact
-version (e.g. `v1.7.0`) or one of two special values:
+`version` is the version of `zizmor` to use. It must be provided as either an
+exact version (e.g. `v1.7.0`) or the special value `pinned`, which uses the
+version recorded in this action's `support/zizmor-version`. That file is kept
+current by an automated workflow, so each release of this action pins the
+`zizmor` release that was current when it was cut.
 
-| value | meaning |
-| --- | --- |
-| `locked` | the version pinned in this action's `uv.lock`, which Dependabot keeps current. Every wheel is hash-verified from the lock. |
-| `latest` | whatever the newest release of `zizmor` is when the job runs. |
+Whichever version you pick, the action installs it from `support/locks/`,
+which pins every wheel of that version by hash. The wheel that runs on your
+runner is verified against those hashes, the same guarantee the pinned
+container digests gave before.
 
 > [!NOTE]
 > You can specify `version` with or without the `v` prefix.
 > For example, `v1.7.0` and `1.7.0` are both valid and equivalent.
+
+> [!WARNING]
+> `version: latest` is **not** supported. Resolving it at run time would make
+> the version of `zizmor` that your workflow runs mutable, which defeats the
+> point of pinning. Use `pinned` or an exact version instead.
 
 ### `token`
 
@@ -333,12 +341,14 @@ security-events: write"}
 
 ## Troubleshooting
 
-### "Cannot run this action without uv"
+### "Cannot run this action without Python"
 
-This action runs `zizmor` with [uv], which it installs via [setup-uv] before
-running. If you see this error, that installation didn't take effect on the
-runner &mdash; for example because a self-hosted runner blocks the download,
-or because a later step removed it from `PATH`.
+This action installs `zizmor` from a hash-verified wheel, which needs a
+`python3` on `PATH`. Every GitHub-hosted runner ships one.
+
+If you see this error, it _probably_ means that you are running the action
+from a self-hosted runner without Python installed. Install Python onto the
+runner, or make sure it is on `PATH` by the time this action runs.
 
 ### Changes introduce security alerts but no PR checks are shown
 
@@ -383,8 +393,6 @@ If you hit this behavior, you have a few options:
 [Audit Rules]: https://docs.zizmor.sh/audits/
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
 [Filtering results]: https://docs.zizmor.sh/usage/#filtering-results
-[uv]: https://docs.astral.sh/uv/
-[setup-uv]: https://github.com/astral-sh/setup-uv
 [#43]: https://github.com/zizmorcore/zizmor-action/issues/43
 [SARIF support for code scanning]: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#specifying-the-location-for-source-files
 [Triaging code scanning alerts in pull requests]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/triaging-code-scanning-alerts-in-pull-requests?utm_source=chatgpt.com#about-code-scanning-results-on-pull-requests
