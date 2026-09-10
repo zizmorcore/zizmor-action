@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor via Docker
+# action.sh: run zizmor via uv
 
 set -eu
 
@@ -29,23 +29,23 @@ output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed docker || die "Cannot run this action without Docker"
+installed uv || die "Cannot run this action without uv"
 
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
-
-# Load an associative array of versions from `./support/versions`.
-# Each line is of the form `version digest`.
-declare -A versions
-while IFS=' ' read -r version digest; do
-    versions["${version}"]="${digest}"
-done < "${GITHUB_ACTION_PATH}/support/versions"
 
 output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
-[[ "${GHA_ZIZMOR_VERSION}" == "latest" || "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-    || die "'version' must be 'latest' or an exact X.Y.Z version"
+case "${GHA_ZIZMOR_VERSION}" in
+    locked|"") resolution="locked" ;;
+    latest) resolution="latest" ;;
+    *)
+        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
+            || die "'version' must be 'locked', 'latest' or an exact X.Y.Z version"
+        resolution="pinned"
+        ;;
+esac
 
 arguments=()
 arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
@@ -73,39 +73,44 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
 fi
 
 normalized_version="${GHA_ZIZMOR_VERSION#v}"
-digest="${versions[${normalized_version}]:-}"
 
-# We only proceed if we have a digest for the requested version; a lookup
-# failure indicates an unknown version (i.e. either nonsense or a version
-# that was released after this action's last release).
-if [[ -z "${digest}" ]]; then
-    die "Unknown version: ${GHA_ZIZMOR_VERSION}"
-fi
-
-image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
-
-echo "::group::Pulling zizmor image"
-docker pull "${image}"
-echo "::endgroup::"
+zizmor_command=()
+case "${resolution}" in
+    locked)
+        # The default version is the one pinned in this action's uv.lock,
+        # which Dependabot keeps current. `--locked` refuses to re-resolve
+        # if the lockfile and pyproject.toml have drifted apart, and the
+        # lock records a hash for every wheel, so this is verified as well
+        # as pinned.
+        #
+        # The environment goes under RUNNER_TEMP rather than into the
+        # action's own checkout.
+        export UV_PROJECT_ENVIRONMENT="${RUNNER_TEMP}/zizmor-env"
+        zizmor_command=(uv run --project "${GITHUB_ACTION_PATH}" --locked zizmor)
+        ;;
+    latest)
+        zizmor_command=(uvx "zizmor@latest")
+        ;;
+    pinned)
+        zizmor_command=(uvx "zizmor@${normalized_version}")
+        ;;
+esac
 
 # Notes:
-# - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
-#   and with /workspace as the working directory, so that user inputs
-#   like '.' resolve correctly.
+# - uv resolves the right wheel for the runner's architecture itself, and
+#   an unknown version fails here as a resolution error.
+# - We run from ${GITHUB_WORKSPACE}, so that user inputs like '.' resolve
+#   correctly.
 # - We pass the GitHub token as an environment variable so that zizmor
 #   can run online audits/perform online collection if requested.
 # - ${GHA_ZIZMOR_INPUTS} is intentionally not quoted, so that
 #   it can expand according to the shell's word-splitting rules.
 #   However, we put it after `--` so that it can't be interpreted
 #   as one or more flags.
-#
+cd "${GITHUB_WORKSPACE}"
+
 # shellcheck disable=SC2086
-docker run \
-    --rm \
-    --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
-    --workdir "/workspace" \
-    --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
-    "${image}" \
+GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor_command[@]}" \
     "${arguments[@]}" \
     -- \
     ${GHA_ZIZMOR_INPUTS} \

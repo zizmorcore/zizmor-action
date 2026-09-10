@@ -10,7 +10,8 @@ permissions: {}
 
 jobs:
   zizmor:
-    runs-on: ubuntu-latest
+    # ubuntu-slim has no Docker daemon, which this action no longer needs.
+    runs-on: ubuntu-slim
     permissions:
       contents: read # only needed for private repos
       actions: read # only needed for private repos
@@ -21,6 +22,6 @@ jobs:
           persist-credentials: false
 
       - name: Run zizmor 🌈
-        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        uses: $/
         with:
           advanced-security: false
