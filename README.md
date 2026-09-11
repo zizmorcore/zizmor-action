@@ -343,8 +343,9 @@ security-events: write"}
 
 ### "Cannot run this action without Python"
 
-This action installs `zizmor` from a hash-verified wheel, which needs a
-`python3` on `PATH`. Every GitHub-hosted runner ships one.
+This action bootstraps `zizmor` from the official PyPI releases, which
+means it needs a runner-provided Python runtime. All of GitHub's
+own runners provide Python.
 
 If you see this error, it _probably_ means that you are running the action
 from a self-hosted runner without Python installed. Install Python onto the
