@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor via Docker
+# action.sh: run zizmor from a hash-verified wheel
 
 set -eu
 
@@ -29,23 +29,35 @@ output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed docker || die "Cannot run this action without Docker"
+installed python3 || die "Cannot run this action without Python"
 
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
-
-# Load an associative array of versions from `./support/versions`.
-# Each line is of the form `version digest`.
-declare -A versions
-while IFS=' ' read -r version digest; do
-    versions["${version}"]="${digest}"
-done < "${GITHUB_ACTION_PATH}/support/versions"
 
 output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
-[[ "${GHA_ZIZMOR_VERSION}" == "latest" || "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-    || die "'version' must be 'latest' or an exact X.Y.Z version"
+# The default version is the one recorded in `support/zizmor-version`, which
+# the version-sync workflow keeps current; each release of this action
+# therefore pins the zizmor release that was current when it was cut.
+#
+# `latest` is deliberately unsupported: resolving it at run time would make
+# the version of zizmor a workflow runs mutable, which is what pinning is
+# meant to prevent.
+case "${GHA_ZIZMOR_VERSION}" in
+    pinned|"")
+        zizmor_version="$(< "${GITHUB_ACTION_PATH}/support/zizmor-version")"
+        ;;
+    latest)
+        err "'version: latest' is no longer supported, because it cannot be pinned"
+        die "Use 'pinned' (the default) or an exact X.Y.Z version instead"
+        ;;
+    *)
+        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
+            || die "'version' must be 'pinned' or an exact X.Y.Z version"
+        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
+        ;;
+esac
 
 arguments=()
 arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
@@ -72,40 +84,49 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
 
-normalized_version="${GHA_ZIZMOR_VERSION#v}"
-digest="${versions[${normalized_version}]:-}"
+lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
+[[ -f "${lockfile}" ]] \
+    || die "Unknown version ${zizmor_version}; was it released after this action?"
 
-# We only proceed if we have a digest for the requested version; a lookup
-# failure indicates an unknown version (i.e. either nonsense or a version
-# that was released after this action's last release).
-if [[ -z "${digest}" ]]; then
-    die "Unknown version: ${GHA_ZIZMOR_VERSION}"
-fi
+# The lock pins every wheel for this version by hash, so `--require-hashes`
+# gives us the same guarantee the pinned container digests used to. pip picks
+# the wheel matching the runner and verifies it against that set.
+venv="${RUNNER_TEMP}/zizmor-venv"
+bindir="${RUNNER_TEMP}/zizmor-bin"
+rm -rf "${venv}" "${bindir}"
 
-image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
+python3 -m venv "${venv}"
+"${venv}/bin/python" -m pip install \
+    --quiet --no-input --disable-pip-version-check \
+    --only-binary=:all: \
+    --require-hashes \
+    --requirement "${lockfile}"
 
-echo "::group::Pulling zizmor image"
-docker pull "${image}"
-echo "::endgroup::"
+# zizmor's wheels ship a self-contained native executable, so the virtual
+# environment is only a means of getting a verified copy of it onto the
+# runner. Keep the binary, drop everything else.
+mkdir -p "${bindir}"
+cp "${venv}/bin/zizmor" "${bindir}/zizmor"
+rm -rf "${venv}"
+
+"${bindir}/zizmor" --version >/dev/null 2>&1 \
+    || die "zizmor is not self-contained on this runner and cannot run outside its virtual environment"
+
+zizmor_command=("${bindir}/zizmor")
 
 # Notes:
-# - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
-#   and with /workspace as the working directory, so that user inputs
-#   like '.' resolve correctly.
+# - We run from ${GITHUB_WORKSPACE}, so that user inputs like '.' resolve
+#   correctly.
 # - We pass the GitHub token as an environment variable so that zizmor
 #   can run online audits/perform online collection if requested.
 # - ${GHA_ZIZMOR_INPUTS} is intentionally not quoted, so that
 #   it can expand according to the shell's word-splitting rules.
 #   However, we put it after `--` so that it can't be interpreted
 #   as one or more flags.
-#
+cd "${GITHUB_WORKSPACE}"
+
 # shellcheck disable=SC2086
-docker run \
-    --rm \
-    --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
-    --workdir "/workspace" \
-    --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
-    "${image}" \
+GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor_command[@]}" \
     "${arguments[@]}" \
     -- \
     ${GHA_ZIZMOR_INPUTS} \

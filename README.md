@@ -78,7 +78,7 @@ permissions: {}
 
 jobs:
   zizmor:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       security-events: write
       contents: read # only needed for private or internal repos
@@ -114,7 +114,7 @@ permissions: {}
 
 jobs:
   zizmor:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       contents: read # only needed for private or internal repos
       actions: read # only needed for private or internal repos
@@ -216,15 +216,27 @@ See `zizmor`'s [Filtering results] documentation for more information.
 
 ### `version`
 
-*Default*: `latest`
+*Default*: `pinned`
 
-`version` is the version of `zizmor` to use. It must be provided as
-either an exact version (e.g. `v1.7.0`) or the special value `latest`,
-which will always use the latest version of `zizmor`.
+`version` is the version of `zizmor` to use. It must be provided as either an
+exact version (e.g. `v1.7.0`) or the special value `pinned`, which uses the
+version recorded in this action's `support/zizmor-version`. That file is kept
+current by an automated workflow, so each release of this action pins the
+`zizmor` release that was current when it was cut.
+
+Whichever version you pick, the action installs it from `support/locks/`,
+which pins every wheel of that version by hash. The wheel that runs on your
+runner is verified against those hashes, the same guarantee the pinned
+container digests gave before.
 
 > [!NOTE]
 > You can specify `version` with or without the `v` prefix.
 > For example, `v1.7.0` and `1.7.0` are both valid and equivalent.
+
+> [!WARNING]
+> `version: latest` is **not** supported. Resolving it at run time would make
+> the version of `zizmor` that your workflow runs mutable, which defeats the
+> point of pinning. Use `pinned` or an exact version instead.
 
 ### `token`
 
@@ -329,23 +341,15 @@ security-events: write"}
 
 ## Troubleshooting
 
-### "Cannot run this action without Docker"
+### "Cannot run this action without Python"
 
-This action uses a container to run `zizmor`, which means that it
-needs access to a container runtime (like Docker).
+This action bootstraps `zizmor` from the official PyPI releases, which
+means it needs a runner-provided Python runtime. All of GitHub's
+own runners provide Python.
 
-If you see this error, it _probably_ means that you are running the
-action from a self-hosted runner, or from one of the GitHub-hosted runners
-that does not have Docker installed. For example, the GitHub-hosted
-macOS runners do not have Docker installed by default.
-
-For self-hosted runners, you should install Docker (or a compatible
-container runtime) onto the runner.
-
-For GitHub-hosted runners, you should switch to `ubuntu-latest` or another
-Linux-based runner that comes with Docker by default. You _may_ be
-able to use [docker/setup-docker-action] to install Docker on other runners,
-but this is **not officially supported** by this action.
+If you see this error, it _probably_ means that you are running the action
+from a self-hosted runner without Python installed. Install Python onto the
+runner, or make sure it is on `PATH` by the time this action runs.
 
 ### Changes introduce security alerts but no PR checks are shown
 
@@ -390,7 +394,6 @@ If you hit this behavior, you have a few options:
 [Audit Rules]: https://docs.zizmor.sh/audits/
 [Using personas]: https://docs.zizmor.sh/usage/#using-personas
 [Filtering results]: https://docs.zizmor.sh/usage/#filtering-results
-[docker/setup-docker-action]: https://github.com/docker/setup-docker-action
 [#43]: https://github.com/zizmorcore/zizmor-action/issues/43
 [SARIF support for code scanning]: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#specifying-the-location-for-source-files
 [Triaging code scanning alerts in pull requests]: https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/triaging-code-scanning-alerts-in-pull-requests?utm_source=chatgpt.com#about-code-scanning-results-on-pull-requests

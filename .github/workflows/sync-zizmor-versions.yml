@@ -5,6 +5,8 @@ on:
 
 name: Sync zizmor versions
 
+permissions: {}
+
 env:
   BRANCH_NAME: sync-zizmor-versions
 
@@ -21,11 +23,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install dependencies
-        run: sudo apt install -y skopeo jq
-
       - name: Sync zizmor versions
-        run: ./support/sync-zizmor-versions.sh > ./support/versions
+        run: ./support/sync-zizmor-versions.sh
 
       - name: Create or update pull request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
@@ -37,12 +36,14 @@ jobs:
           body: |
             :robot: :warning: :robot:
 
-            Changes were detected to the `ghcr.io/zizmorcore/zizmor` image's tags.
+            A newer stable release of `zizmor` is available on PyPI.
 
-            This PR updates the `versions` file with any tag and digest changes.
+            This PR refreshes the hash-pinned locks under `support/locks/` and
+            `support/zizmor-version`, which is the version this action runs by
+            default.
 
             Please review manually before merging.
 
-            Cross-reference: <https://ghcr.io/zizmorcore/zizmor>
+            Cross-reference: <https://pypi.org/project/zizmor/>
           assignees: woodruffw
           draft: true
