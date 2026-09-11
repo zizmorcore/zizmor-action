@@ -86,7 +86,7 @@ fi
 
 lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
 [[ -f "${lockfile}" ]] \
-    || die "No lock for zizmor ${zizmor_version}; it is either nonsense or newer than this action's last release"
+    || die "Unknown version ${zizmor_version}; was it released after this action?"
 
 # The lock pins every wheel for this version by hash, so `--require-hashes`
 # gives us the same guarantee the pinned container digests used to. pip picks
