@@ -37,24 +37,17 @@ output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
-# The default version is the one recorded in `support/zizmor-version`, which
-# the version-sync workflow keeps current; each release of this action
-# therefore pins the zizmor release that was current when it was cut.
-#
-# `latest` is deliberately unsupported: resolving it at run time would make
-# the version of zizmor a workflow runs mutable, which is what pinning is
-# meant to prevent.
+# `latest` means the newest zizmor release this action knows about, i.e. the
+# one recorded in `support/zizmor-version` by the version-sync workflow. It
+# resolves out of the action's own tree rather than from PyPI, so a given
+# release of this action always runs the same zizmor release.
 case "${GHA_ZIZMOR_VERSION}" in
-    pinned|"")
+    latest|"")
         zizmor_version="$(< "${GITHUB_ACTION_PATH}/support/zizmor-version")"
-        ;;
-    latest)
-        err "'version: latest' is no longer supported, because it cannot be pinned"
-        die "Use 'pinned' (the default) or an exact X.Y.Z version instead"
         ;;
     *)
         [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-            || die "'version' must be 'pinned' or an exact X.Y.Z version"
+            || die "'version' must be 'latest' or an exact X.Y.Z version"
         zizmor_version="${GHA_ZIZMOR_VERSION#v}"
         ;;
 esac
@@ -89,30 +82,33 @@ lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
     || die "Unknown version ${zizmor_version}; was it released after this action?"
 
 # The lock pins every wheel for this version by hash, so `--require-hashes`
-# gives us the same guarantee the pinned container digests used to. pip picks
+# gives us the same guarantee the pinned container digests used to: pip picks
 # the wheel matching the runner and verifies it against that set.
-venv="${RUNNER_TEMP}/zizmor-venv"
-bindir="${RUNNER_TEMP}/zizmor-bin"
-rm -rf "${venv}" "${bindir}"
+wheeldir="${RUNNER_TEMP}/zizmor-wheel"
+rm -rf "${wheeldir}"
+mkdir -p "${wheeldir}"
 
-python3 -m venv "${venv}"
-"${venv}/bin/python" -m pip install \
+python3 -m pip download \
     --quiet --no-input --disable-pip-version-check \
     --only-binary=:all: \
+    --no-deps \
     --require-hashes \
+    --dest "${wheeldir}" \
     --requirement "${lockfile}"
 
-# zizmor's wheels ship a self-contained native executable, so the virtual
-# environment is only a means of getting a verified copy of it onto the
-# runner. Keep the binary, drop everything else.
-mkdir -p "${bindir}"
-cp "${venv}/bin/zizmor" "${bindir}/zizmor"
-rm -rf "${venv}"
+wheels=("${wheeldir}"/*.whl)
+[[ -f "${wheels[0]}" ]] || die "No zizmor ${zizmor_version} wheel for this runner"
 
-"${bindir}/zizmor" --version >/dev/null 2>&1 \
-    || die "zizmor is not self-contained on this runner and cannot run outside its virtual environment"
+# Wheels are just ZIPs, and zizmor's contains nothing but its executable, so
+# unpacking one is the whole installation: no environment to create or remove.
+python3 -m zipfile --extract "${wheels[0]}" "${wheeldir}/unpacked"
 
-zizmor_command=("${bindir}/zizmor")
+zizmor="${wheeldir}/unpacked/zizmor-${zizmor_version}.data/scripts/zizmor"
+[[ -f "${zizmor}" ]] || zizmor="${zizmor}.exe"
+[[ -f "${zizmor}" ]] || die "Wheel for zizmor ${zizmor_version} contains no executable"
+
+# ZIPs carry no permission bits that `zipfile` restores.
+chmod +x "${zizmor}"
 
 # Notes:
 # - We run from ${GITHUB_WORKSPACE}, so that user inputs like '.' resolve
@@ -126,7 +122,7 @@ zizmor_command=("${bindir}/zizmor")
 cd "${GITHUB_WORKSPACE}"
 
 # shellcheck disable=SC2086
-GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor_command[@]}" \
+GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor}" \
     "${arguments[@]}" \
     -- \
     ${GHA_ZIZMOR_INPUTS} \

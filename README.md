@@ -216,12 +216,13 @@ See `zizmor`'s [Filtering results] documentation for more information.
 
 ### `version`
 
-*Default*: `pinned`
+*Default*: `latest`
 
-`version` is the version of `zizmor` to use. It must be provided as either an
-exact version (e.g. `v1.7.0`) or the special value `pinned`, which uses the
-version recorded in this action's `support/zizmor-version`. That file is kept
-current by an automated workflow, so each release of this action pins the
+`version` is the version of `zizmor` to use. It must be provided as
+either an exact version (e.g. `v1.7.0`) or the special value `latest`,
+which uses the newest `zizmor` release this action knows about, i.e. the
+one recorded in this action's `support/zizmor-version`. That file is kept
+current by an automated workflow, so each release of this action runs the
 `zizmor` release that was current when it was cut.
 
 Whichever version you pick, the action installs it from `support/locks/`,
@@ -232,11 +233,6 @@ container digests gave before.
 > [!NOTE]
 > You can specify `version` with or without the `v` prefix.
 > For example, `v1.7.0` and `1.7.0` are both valid and equivalent.
-
-> [!WARNING]
-> `version: latest` is **not** supported. Resolving it at run time would make
-> the version of `zizmor` that your workflow runs mutable, which defeats the
-> point of pinning. Use `pinned` or an exact version instead.
 
 ### `token`
 

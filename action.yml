@@ -56,11 +56,10 @@ inputs:
     description: |
       The version of zizmor to use.
 
-      Defaults to `pinned`, i.e. the version recorded in this action's
-      `support/zizmor-version`, which an automated workflow keeps current.
-      Can also be an exact `X.Y.Z` version.
+      Either an exact `X.Y.Z` version or `latest` (the default), i.e. the
+      newest zizmor release this action knows about.
     required: false
-    default: pinned
+    default: latest
   token:
     description: |
       The GitHub API token to use for zizmor online-audits (if enabled).
