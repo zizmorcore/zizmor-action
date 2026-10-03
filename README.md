@@ -220,17 +220,7 @@ See `zizmor`'s [Filtering results] documentation for more information.
 
 `version` is the version of `zizmor` to use. It must be provided as
 either an exact version (e.g. `v1.7.0`) or the special value `latest`,
-which uses the newest `zizmor` release this action knows about, i.e. the
-one pinned in the `zizmor-latest` dependency group. An automated workflow
-updates that group and its `support/locks/zizmor-latest.txt` requirements,
-so each release of this action runs the `zizmor` release that was current
-when it was cut.
-
-Each supported version has a dependency group in `support/pyproject.toml`,
-managed by `uv add`. This repository's sync workflow uses `uv pip compile`
-to generate the hash-pinned requirements files committed under `support/locks/`.
-The action uses Python and pip to download and verify the selected wheel
-against those hashes; it does not require uv on your runner.
+which uses the newest `zizmor` release this action knows about.
 
 > [!NOTE]
 > You can specify `version` with or without the `v` prefix.
