@@ -29,6 +29,8 @@ jobs:
           version: "0.12.15"
 
       - name: Sync zizmor versions
+        env:
+          UV_LOCKED: "1"
         run: uv run ./support/sync-zizmor-versions.py
 
       - name: Create or update pull request
