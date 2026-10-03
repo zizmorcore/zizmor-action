@@ -37,13 +37,11 @@ output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
-# `latest` means the newest zizmor release this action knows about, i.e. the
-# one recorded in `support/zizmor-version` by the version-sync workflow. It
-# resolves out of the action's own tree rather than from PyPI, so a given
-# release of this action always runs the same zizmor release.
+# `latest` selects the requirements compiled from the zizmor-latest group.
+# Like exact versions, it is pinned in this action's own tree.
 case "${GHA_ZIZMOR_VERSION}" in
     latest|"")
-        zizmor_version="$(< "${GITHUB_ACTION_PATH}/support/zizmor-version")"
+        zizmor_version="latest"
         ;;
     *)
         [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
@@ -80,6 +78,12 @@ fi
 lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
 [[ -f "${lockfile}" ]] \
     || die "Unknown version ${zizmor_version}; was it released after this action?"
+
+# The generated requirements start with the exact zizmor pin, including
+# for `latest`. Read it to locate the executable inside the wheel.
+read -r requirement _ < "${lockfile}"
+[[ "${requirement}" == zizmor==* ]] || die "Missing zizmor pin in ${lockfile}"
+zizmor_version="${requirement#zizmor==}"
 
 # The lock pins every wheel for this version by hash, so `--require-hashes`
 # gives us the same guarantee the pinned container digests used to: pip picks

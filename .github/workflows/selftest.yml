@@ -33,7 +33,10 @@ jobs:
           inputs: ${{ github.repository }}
 
   selftest-version:
-    name: "TEST: specific version of zizmor"
+    name: "TEST: zizmor version ${{ matrix.version }}"
+    strategy:
+      matrix:
+        version: ["1.29.0", "v1.29.0", "latest"]
     runs-on: ubuntu-slim
     permissions:
       security-events: write
@@ -41,7 +44,7 @@ jobs:
       - uses: $/
         with:
           advanced-security: true
-          version: "1.29.0"
+          version: ${{ matrix.version }}
           inputs: ${{ github.repository }}
 
   selftest-version-nonexistent-xfail:

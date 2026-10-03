@@ -25,6 +25,8 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.15"
 
       - name: Sync zizmor versions
         run: uv run ./support/sync-zizmor-versions.py
@@ -41,9 +43,9 @@ jobs:
 
             A newer stable release of `zizmor` is available on PyPI.
 
-            This PR refreshes the hash-pinned locks under `support/locks/` and
-            `support/zizmor-version`, which is the version this action runs by
-            default.
+            This PR refreshes the version groups in `support/pyproject.toml`,
+            including `zizmor-latest` for the default version, and their
+            hash-pinned requirements under `support/locks/`.
 
             Please review manually before merging.
 
