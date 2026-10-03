@@ -5,6 +5,8 @@ on:
 
 name: Sync zizmor versions
 
+permissions: {}
+
 env:
   BRANCH_NAME: sync-zizmor-versions
 
@@ -21,11 +23,15 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install dependencies
-        run: sudo apt install -y skopeo jq
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.15"
 
       - name: Sync zizmor versions
-        run: ./support/sync-zizmor-versions.sh > ./support/versions
+        env:
+          UV_LOCKED: "1"
+        run: uv run ./support/sync-zizmor-versions.py
 
       - name: Create or update pull request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
@@ -37,12 +43,14 @@ jobs:
           body: |
             :robot: :warning: :robot:
 
-            Changes were detected to the `ghcr.io/zizmorcore/zizmor` image's tags.
+            A newer stable release of `zizmor` is available on PyPI.
 
-            This PR updates the `versions` file with any tag and digest changes.
+            This PR refreshes the version groups in `support/pyproject.toml`,
+            including `zizmor-latest` for the default version, and their
+            hash-pinned requirements under `support/locks/`.
 
             Please review manually before merging.
 
-            Cross-reference: <https://ghcr.io/zizmorcore/zizmor>
+            Cross-reference: <https://pypi.org/project/zizmor/>
           assignees: woodruffw
           draft: true

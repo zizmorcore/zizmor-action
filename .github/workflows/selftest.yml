@@ -20,7 +20,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm]
+        # ubuntu-slim has no Docker daemon, but it does ship Python.
+        os: [ubuntu-latest, ubuntu-24.04-arm, ubuntu-slim]
     runs-on: ${{ matrix.os }}
     permissions:
       security-events: write
@@ -32,15 +33,18 @@ jobs:
           inputs: ${{ github.repository }}
 
   selftest-version:
-    name: "TEST: specific version of zizmor"
-    runs-on: ubuntu-latest
+    name: "TEST: zizmor version ${{ matrix.version }}"
+    strategy:
+      matrix:
+        version: ["1.29.0", "v1.29.0", "latest"]
+    runs-on: ubuntu-slim
     permissions:
       security-events: write
     steps:
       - uses: $/
         with:
           advanced-security: true
-          version: "1.29.0"
+          version: ${{ matrix.version }}
           inputs: ${{ github.repository }}
 
   selftest-version-nonexistent-xfail:

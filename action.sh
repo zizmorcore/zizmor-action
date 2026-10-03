@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor via Docker
+# action.sh: run zizmor from a hash-verified wheel
 
 set -eu
 
@@ -29,23 +29,26 @@ output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed docker || die "Cannot run this action without Docker"
+installed python3 || die "Cannot run this action without Python"
 
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
-
-# Load an associative array of versions from `./support/versions`.
-# Each line is of the form `version digest`.
-declare -A versions
-while IFS=' ' read -r version digest; do
-    versions["${version}"]="${digest}"
-done < "${GITHUB_ACTION_PATH}/support/versions"
 
 output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
 
-[[ "${GHA_ZIZMOR_VERSION}" == "latest" || "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-    || die "'version' must be 'latest' or an exact X.Y.Z version"
+# `latest` selects the requirements compiled from the zizmor-latest group.
+# Like exact versions, it is pinned in this action's own tree.
+case "${GHA_ZIZMOR_VERSION}" in
+    latest|"")
+        zizmor_version="latest"
+        ;;
+    *)
+        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
+            || die "'version' must be 'latest' or an exact X.Y.Z version"
+        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
+        ;;
+esac
 
 arguments=()
 arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
@@ -72,40 +75,58 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
 
-normalized_version="${GHA_ZIZMOR_VERSION#v}"
-digest="${versions[${normalized_version}]:-}"
+lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
+[[ -f "${lockfile}" ]] \
+    || die "Unknown version ${zizmor_version}; was it released after this action?"
 
-# We only proceed if we have a digest for the requested version; a lookup
-# failure indicates an unknown version (i.e. either nonsense or a version
-# that was released after this action's last release).
-if [[ -z "${digest}" ]]; then
-    die "Unknown version: ${GHA_ZIZMOR_VERSION}"
-fi
+# The generated requirements start with the exact zizmor pin, including
+# for `latest`. Read it to locate the executable inside the wheel.
+read -r requirement _ < "${lockfile}"
+[[ "${requirement}" == zizmor==* ]] || die "Missing zizmor pin in ${lockfile}"
+zizmor_version="${requirement#zizmor==}"
 
-image="ghcr.io/zizmorcore/zizmor:${normalized_version}@${digest}"
+# The lock pins every wheel for this version by hash, so `--require-hashes`
+# gives us the same guarantee the pinned container digests used to: pip picks
+# the wheel matching the runner and verifies it against that set.
+wheeldir="${RUNNER_TEMP}/zizmor-wheel"
+rm -rf "${wheeldir}"
+mkdir -p "${wheeldir}"
 
-echo "::group::Pulling zizmor image"
-docker pull "${image}"
-echo "::endgroup::"
+python3 -m pip download \
+    --quiet --no-input --disable-pip-version-check \
+    --only-binary=:all: \
+    --no-deps \
+    --require-hashes \
+    --dest "${wheeldir}" \
+    --requirement "${lockfile}"
+
+wheels=("${wheeldir}"/*.whl)
+[[ -f "${wheels[0]}" ]] || die "No zizmor ${zizmor_version} wheel for this runner"
+
+# Wheels are just ZIPs, and zizmor's contains nothing but its executable, so
+# unpacking one is the whole installation: no environment to create or remove.
+python3 -m zipfile --extract "${wheels[0]}" "${wheeldir}/unpacked"
+
+zizmor="${wheeldir}/unpacked/zizmor-${zizmor_version}.data/scripts/zizmor"
+[[ -f "${zizmor}" ]] || zizmor="${zizmor}.exe"
+[[ -f "${zizmor}" ]] || die "Wheel for zizmor ${zizmor_version} contains no executable"
+
+# ZIPs carry no permission bits that `zipfile` restores.
+chmod +x "${zizmor}"
 
 # Notes:
-# - We run the container with ${GITHUB_WORKSPACE} mounted as /workspace
-#   and with /workspace as the working directory, so that user inputs
-#   like '.' resolve correctly.
+# - We run from ${GITHUB_WORKSPACE}, so that user inputs like '.' resolve
+#   correctly.
 # - We pass the GitHub token as an environment variable so that zizmor
 #   can run online audits/perform online collection if requested.
 # - ${GHA_ZIZMOR_INPUTS} is intentionally not quoted, so that
 #   it can expand according to the shell's word-splitting rules.
 #   However, we put it after `--` so that it can't be interpreted
 #   as one or more flags.
-#
+cd "${GITHUB_WORKSPACE}"
+
 # shellcheck disable=SC2086
-docker run \
-    --rm \
-    --volume "${GITHUB_WORKSPACE}:/workspace:ro" \
-    --workdir "/workspace" \
-    --env "GH_TOKEN=${GHA_ZIZMOR_TOKEN}" \
-    "${image}" \
+GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor}" \
     "${arguments[@]}" \
     -- \
     ${GHA_ZIZMOR_INPUTS} \
