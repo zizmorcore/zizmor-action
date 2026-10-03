@@ -7,6 +7,10 @@ Run [`zizmor`] from GitHub Actions!
 > Please report any issues you encounter, and be aware that backwards
 > incompatible changes may be made until a stable version is released.
 
+> [!NOTE]
+> Starting with v0.7.0, this action is now compatible with `ubuntu-slim` runners.
+> Previous versions remain incompatible with `ubuntu-slim`.
+
 ## Table of Contents
 
 - [Quickstart](#quickstart)
