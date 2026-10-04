@@ -121,9 +121,9 @@ case "${exitcode}" in
         ;;
 esac
 
-jq -n --arg sha "${GITHUB_SHA}" \
+jq -n --arg name "${GHA_ZIZMOR_INTERNAL_CHECKS_NAME}" --arg sha "${GITHUB_SHA}" \
     --arg url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-    '{name: "zizmor", head_sha: $sha, details_url: $url, status: "in_progress"}' \
+    '{name: $name, head_sha: $sha, details_url: $url, status: "in_progress"}' \
     | api POST "${endpoint}"
 check_id="$(jq -er '.id | select(type == "number")' "${tempdir}/response.json")"
 

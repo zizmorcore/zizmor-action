@@ -153,13 +153,17 @@ jobs:
     name: "TEST: Checks with ${{ matrix.findings }} findings"
     if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     strategy:
-      # Both cases publish the same check name; inspect each before creating the next.
-      max-parallel: 1
       matrix:
-        findings: [0, 51]
+        include:
+          - findings: 0
+            check-name: zizmor selftest
+          - findings: 51
+            check-name: zizmor selftest (xfail)
     runs-on: ubuntu-slim
     permissions:
       checks: write
+    env:
+      CHECK_NAME: ${{ matrix.check-name }}
     steps:
       - name: Prepare workflow to audit
         env:
@@ -185,6 +189,7 @@ jobs:
         with:
           advanced-security: false
           checks: true
+          internal-checks-name: ${{ env.CHECK_NAME }}
           inputs: checks-selftest.yml
           online-audits: false
           min-severity: high
@@ -199,10 +204,11 @@ jobs:
           if [[ "${FINDINGS}" -gt 0 ]]; then expected=failure; fi
           [[ "${OUTCOME}" == "${expected}" ]]
           # GitHub replaces details_url on checks created with GITHUB_TOKEN.
-          # The API defaults to the latest check per name; these cases run serially.
+          # The API defaults to the latest check per name; each case has its own name.
           gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100" \
-            | jq -e --arg conclusion "${expected}" --argjson count "${FINDINGS}" '
-                [.check_runs[] | select(.name == "zizmor")] |
+            | jq -e --arg name "${CHECK_NAME}" \
+                --arg conclusion "${expected}" --argjson count "${FINDINGS}" '
+                [.check_runs[] | select(.name == $name)] |
                 length == 1 and (.[0] | .status == "completed" and
                     .conclusion == $conclusion and .output.annotations_count == $count)'
 
@@ -218,6 +224,7 @@ jobs:
         continue-on-error: true
         with:
           checks: true
+          internal-checks-name: zizmor selftest (invalid xfail)
           advanced-security: ${{ matrix.mode == 'advanced-security' }}
           annotations: ${{ matrix.mode == 'annotations' }}
 
@@ -249,6 +256,7 @@ jobs:
         with:
           advanced-security: false
           checks: true
+          internal-checks-name: zizmor selftest (permission xfail)
           inputs: checks-selftest.yml
           online-audits: false
 

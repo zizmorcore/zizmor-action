@@ -28,6 +28,7 @@ Run [`zizmor`] from GitHub Actions!
   - [`advanced-security`](#advanced-security)
   - [`annotations`](#annotations)
   - [`checks`](#checks)
+  - [`internal-checks-name`](#internal-checks-name)
   - [`color`](#color)
   - [`config`](#config)
   - [`fail-on-no-inputs`](#fail-on-no-inputs)
@@ -305,6 +306,16 @@ Requires zizmor v1.6.0 or later.
 > Fork and Dependabot pull requests normally receive a read-only token,
 > even when the workflow requests `checks: write`. Use plain output or
 > [workflow annotations](#annotations) for those runs.
+
+### `internal-checks-name`
+
+*Default*: `zizmor`
+
+> [!WARNING]
+> Most users should not override this value.
+
+When used with `checks: true`, this sets the name of the Check as it appears in
+GitHub's Checks API. Typical usage does not require users to set this.
 
 ### `color`
 

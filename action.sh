@@ -64,6 +64,7 @@ if [[ "${GHA_ZIZMOR_CHECKS:-false}" == "true" ]]; then
     installed jq || die "Checks reporting requires jq"
     installed curl || die "Checks reporting requires curl >= 7.76.0"
     [[ -n "${GHA_ZIZMOR_TOKEN}" ]] || die "Checks reporting requires a token with 'checks: write' permission"
+    [[ -n "${GHA_ZIZMOR_INTERNAL_CHECKS_NAME}" ]] || die "'internal-checks-name' must not be empty"
 fi
 
 if [[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" == "true" ]]; then

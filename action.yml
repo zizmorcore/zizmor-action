@@ -99,6 +99,12 @@ inputs:
       Findings and publishing errors fail the action.
     required: false
     default: "false"
+  internal-checks-name:
+    description: |
+      Override the check name for this action's internal self-tests.
+      Leave this at its default for normal use.
+    required: false
+    default: zizmor
   config:
     description: Path to a custom zizmor configuration file Path (e.g., zizmor.yml).
     required: false
@@ -135,6 +141,7 @@ runs:
         GHA_ZIZMOR_COLOR: ${{ inputs.color }}
         GHA_ZIZMOR_ANNOTATIONS: ${{ inputs.annotations }}
         GHA_ZIZMOR_CHECKS: ${{ inputs.checks }}
+        GHA_ZIZMOR_INTERNAL_CHECKS_NAME: ${{ inputs.internal-checks-name }}
         GHA_ZIZMOR_CONFIG: ${{ inputs.config }}
         GHA_ZIZMOR_FAIL_ON_NO_INPUTS: ${{ inputs.fail-on-no-inputs }}
       shell: bash
