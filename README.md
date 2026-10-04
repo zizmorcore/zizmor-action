@@ -393,9 +393,11 @@ If you see this error, it _probably_ means that you are running the action
 from a self-hosted runner without Python installed. Install Python onto the
 runner, or make sure it is on `PATH` by the time this action runs.
 
-When using `checks: true`, self-hosted runners also need `jq` and `curl`
-v7.76.0 or later. These are preinstalled on GitHub's supported Ubuntu runners,
-including `ubuntu-slim`.
+### "Checks reporting requires jq" or "Checks reporting requires curl >= 7.76.0"
+
+Checks reporting requires `jq` and `curl` v7.76.0 or later. If you see either
+error on a self-hosted runner, install the missing tool and ensure it is on
+`PATH` before running the action.
 
 ### Changes introduce security alerts but no PR checks are shown
 
