@@ -210,7 +210,10 @@ jobs:
                 --arg conclusion "${expected}" --argjson count "${FINDINGS}" '
                 [.check_runs[] | select(.name == $name)] |
                 length == 1 and (.[0] | .status == "completed" and
-                    .conclusion == $conclusion and .output.annotations_count == $count)'
+                    .conclusion == $conclusion and .output.annotations_count == $count and
+                    (.output.summary | contains("View workflow run and logs")) and
+                    (if $count == 0 then .output.title == "No findings"
+                     else .output.text | contains("template-injection") end))'
 
   selftest-checks-invalid-xfail:
     name: "TEST: Checks rejects incompatible modes"

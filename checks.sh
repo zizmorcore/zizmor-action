@@ -8,6 +8,7 @@ results="${1}"
 exitcode="${2}"
 tempdir="$(mktemp -d "${RUNNER_TEMP}/zizmor-checks.XXXXXX")"
 endpoint="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/check-runs"
+run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 check_id=""
 
 api() {
@@ -75,6 +76,9 @@ case "${exitcode}" in
                 {
                     path: $path,
                     display_path: ($local // $key.Remote.path // "stdin"),
+                    severity: $finding.determinations.severity,
+                    description: $finding.desc,
+                    url: $finding.url,
                     start_line: ($primary.concrete.location.start_point.row + 1),
                     end_line: ($primary.concrete.location.start_point.row + 1),
                     annotation_level: ({
@@ -100,41 +104,103 @@ case "${exitcode}" in
                 @json | split("##[") | join("\\u0023#[")
             )
         ' "${tempdir}/findings.json"
-        total="$(jq length "${tempdir}/findings.json")"
         # 16,000 Unicode code points fit within the API limit of 64 KB.
-        jq 'map(select(.path != null) | del(.display_path) | .message |= .[:16000])' \
+        jq 'map(select(.path != null) |
+            del(.display_path, .severity, .description, .url) | .message |= .[:16000])' \
             "${tempdir}/findings.json" > "${tempdir}/annotations.json"
         count="$(jq length "${tempdir}/annotations.json")"
-        summary="${total} findings; ${count} file annotations. "
-        summary+="$((total - count)) findings could not be attached to workspace files; "
-        summary+="see the workflow log."
+
+        jq --arg run_url "${run_url}" \
+            --arg source_url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA}/" '
+            def cell:
+                @html | gsub("\\|"; "&#124;") |
+                gsub("\\["; "&#91;") | gsub("\\]"; "&#93;") |
+                gsub("`"; "&#96;") | gsub("\\\\"; "&#92;") |
+                gsub("\\*"; "&#42;") | gsub("_"; "&#95;") |
+                gsub("~"; "&#126;") | gsub("[\r\n]"; " ");
+            def row:
+                ("<code>\((.path // .display_path) | cell):\(.start_line)</code>") as $label |
+                (if .path == null then $label else
+                    (.path | split("/") | map(@uri) | join("/")) as $path |
+                    "[\($label)](\($source_url)\($path)#L\(.start_line))"
+                end) as $location |
+                "| \(.severity) | [\(.title | cell)](\(.url)) | " +
+                "\($location) | \(.description | cell) |\n";
+            . as $findings |
+            length as $total |
+            (map(select(.path == null)) | length) as $unattached |
+            (reduce .[:50][] as $finding ({
+                text: ("| Severity | Rule | Location | Finding |\n" +
+                    "| --- | --- | --- | --- |\n"),
+                shown: 0
+            };
+                ($finding | row) as $row |
+                # Leave room beneath the API text limit for the truncation notice.
+                if ((.text + $row) | utf8bytelength) <= 60000 then
+                    .text += $row | .shown += 1
+                else . end
+            )) as $report |
+            {
+                title: (if $total == 0 then "No findings" else
+                    "\($total) finding\(if $total == 1 then "" else "s" end)"
+                end),
+                summary: (
+                    if $total == 0 then "🌈 No findings to report."
+                    else
+                        "**\($total) findings**\n\n| Severity | Count |\n| --- | ---: |\n" +
+                        (["High", "Medium", "Low", "Informational", "Unknown"] |
+                            map(. as $severity |
+                                ($findings | map(select(.severity == $severity)) | length)
+                                as $count |
+                                select($count > 0) | "| \($severity) | \($count) |"
+                            ) | join("\n"))
+                    end +
+                    (if $unattached > 0 then
+                        "\n\n\($unattached) findings have no local file annotation; " +
+                        "see the report below and the workflow log."
+                    else "" end) +
+                    "\n\n[View workflow run and logs](\($run_url))"
+                ),
+                text: (if $total == 0 then "" else
+                    $report.text + (if $report.shown < $total then
+                        "\nShowing \($report.shown) of \($total) findings. " +
+                        "See the annotations and workflow log for the remaining findings."
+                    else "" end)
+                end)
+            }
+        ' "${tempdir}/findings.json" > "${tempdir}/report.json"
         ;;
     *)
         echo '[]' > "${tempdir}/annotations.json"
         count=0
         if [[ "${exitcode}" -eq 3 ]]; then
+            title="No inputs collected"
             summary="No inputs were collected by zizmor."
             [[ "${GHA_ZIZMOR_FAIL_ON_NO_INPUTS}" == "false" ]] && conclusion=success
         else
+            title="Analysis failed"
             summary="zizmor failed with exit code ${exitcode}. See the workflow log for details."
         fi
+        jq -n --arg title "${title}" --arg summary "${summary}" --arg run_url "${run_url}" \
+            '{title: $title, text: "",
+                summary: ($summary + "\n\n[View workflow run and logs](" + $run_url + ")")}' \
+            > "${tempdir}/report.json"
         ;;
 esac
 
 jq -n --arg name "${GHA_ZIZMOR_INTERNAL_CHECKS_NAME}" --arg sha "${GITHUB_SHA}" \
-    --arg url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+    --arg url "${run_url}" \
     '{name: $name, head_sha: $sha, details_url: $url, status: "in_progress"}' \
     | api POST "${endpoint}"
 check_id="$(jq -er '.id | select(type == "number")' "${tempdir}/response.json")"
 
 for ((offset = 0; offset < count; offset += 50)); do
-    jq --argjson offset "${offset}" --arg summary "${summary}" \
-        '{output: {title: "zizmor results", summary: $summary,
-            annotations: .[$offset:$offset + 50]}}' "${tempdir}/annotations.json" \
+    jq --argjson offset "${offset}" --slurpfile report "${tempdir}/report.json" \
+        '{output: (($report[0] | del(.text)) + {annotations: .[$offset:$offset + 50]})}' \
+        "${tempdir}/annotations.json" \
         | api PATCH "${endpoint}/${check_id}"
 done
 
-jq -n --arg conclusion "${conclusion}" --arg summary "${summary}" \
-    '{status: "completed", conclusion: $conclusion,
-        output: {title: "zizmor results", summary: $summary}}' \
+jq --arg conclusion "${conclusion}" \
+    '{status: "completed", conclusion: $conclusion, output: .}' "${tempdir}/report.json" \
     | api PATCH "${endpoint}/${check_id}"
