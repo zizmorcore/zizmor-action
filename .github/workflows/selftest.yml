@@ -164,6 +164,7 @@ jobs:
       checks: write
     env:
       CHECK_NAME: ${{ matrix.check-name }}
+      CHECK_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Prepare workflow to audit
         env:
@@ -194,23 +195,27 @@ jobs:
           online-audits: false
           min-severity: high
 
-      - name: Assert check conclusion and annotation count
+      - name: Assert check results and PR association
         env:
           GH_TOKEN: ${{ github.token }}
           FINDINGS: ${{ matrix.findings }}
           OUTCOME: ${{ steps.zizmor.outcome }}
+          PR_NUMBER: ${{ github.event.pull_request.number || 0 }}
         run: |
           expected=success
           if [[ "${FINDINGS}" -gt 0 ]]; then expected=failure; fi
           [[ "${OUTCOME}" == "${expected}" ]]
           # GitHub replaces details_url on checks created with GITHUB_TOKEN.
           # The API defaults to the latest check per name; each case has its own name.
-          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100" \
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${CHECK_SHA}/check-runs?per_page=100" \
             | jq -e --arg name "${CHECK_NAME}" \
-                --arg conclusion "${expected}" --argjson count "${FINDINGS}" '
+                --arg conclusion "${expected}" --argjson count "${FINDINGS}" \
+                --argjson pr "${PR_NUMBER}" '
                 [.check_runs[] | select(.name == $name)] |
                 length == 1 and (.[0] | .status == "completed" and
                     .conclusion == $conclusion and .output.annotations_count == $count and
+                    (if $pr == 0 then true else
+                        .pull_requests | any(.number == $pr) end) and
                     (.output.summary | contains("View workflow run and logs")) and
                     (if $count == 0 then .output.title == "No findings"
                      else .output.text | contains("template-injection") end))'

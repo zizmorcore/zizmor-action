@@ -188,7 +188,7 @@ case "${exitcode}" in
         ;;
 esac
 
-jq -n --arg name "${GHA_ZIZMOR_INTERNAL_CHECKS_NAME}" --arg sha "${GITHUB_SHA}" \
+jq -n --arg name "${GHA_ZIZMOR_INTERNAL_CHECKS_NAME}" --arg sha "${GHA_ZIZMOR_CHECKS_SHA}" \
     --arg url "${run_url}" \
     '{name: $name, head_sha: $sha, details_url: $url, status: "in_progress"}' \
     | api POST "${endpoint}"

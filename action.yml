@@ -141,6 +141,8 @@ runs:
         GHA_ZIZMOR_COLOR: ${{ inputs.color }}
         GHA_ZIZMOR_ANNOTATIONS: ${{ inputs.annotations }}
         GHA_ZIZMOR_CHECKS: ${{ inputs.checks }}
+        # Custom checks need the PR head commit to appear on its Checks tab.
+        GHA_ZIZMOR_CHECKS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         GHA_ZIZMOR_INTERNAL_CHECKS_NAME: ${{ inputs.internal-checks-name }}
         GHA_ZIZMOR_CONFIG: ${{ inputs.config }}
         GHA_ZIZMOR_FAIL_ON_NO_INPUTS: ${{ inputs.fail-on-no-inputs }}
