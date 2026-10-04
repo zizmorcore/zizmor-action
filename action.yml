@@ -62,7 +62,8 @@ inputs:
     default: latest
   token:
     description: |
-      The GitHub API token to use for zizmor online-audits (if enabled).
+      The GitHub API token to use for zizmor online-audits and Checks reporting
+      (if enabled). Checks reporting requires checks: write permission.
     required: false
     default: ${{ github.token }}
   advanced-security:
@@ -86,6 +87,16 @@ inputs:
 
       This option is **mutually exclusive** with `advanced-security: true`.
       You must explicitly set `advanced-security: false` to enable this option.
+      It is also mutually exclusive with `checks: true`.
+    required: false
+    default: "false"
+  checks:
+    description: |
+      Whether to display zizmor's findings in a GitHub check.
+
+      Requires checks: write permission and zizmor >= 1.6.0.
+      Mutually exclusive with advanced-security and annotations: set both to false.
+      Findings and publishing errors fail the action.
     required: false
     default: "false"
   config:
@@ -123,6 +134,7 @@ runs:
         GHA_ZIZMOR_ADVANCED_SECURITY: ${{ inputs.advanced-security }}
         GHA_ZIZMOR_COLOR: ${{ inputs.color }}
         GHA_ZIZMOR_ANNOTATIONS: ${{ inputs.annotations }}
+        GHA_ZIZMOR_CHECKS: ${{ inputs.checks }}
         GHA_ZIZMOR_CONFIG: ${{ inputs.config }}
         GHA_ZIZMOR_FAIL_ON_NO_INPUTS: ${{ inputs.fail-on-no-inputs }}
       shell: bash

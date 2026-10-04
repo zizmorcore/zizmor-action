@@ -27,6 +27,7 @@ Run [`zizmor`] from GitHub Actions!
   - [`token`](#token)
   - [`advanced-security`](#advanced-security)
   - [`annotations`](#annotations)
+  - [`checks`](#checks)
   - [`color`](#color)
   - [`config`](#config)
   - [`fail-on-no-inputs`](#fail-on-no-inputs)
@@ -235,7 +236,8 @@ which uses the newest `zizmor` release this action knows about.
 *Default*: `${{ github.token }}`
 
 `token` is the GitHub token to use for accessing the GitHub REST API
-during online audits.
+during online audits and Checks reporting. When `checks: true`, this token
+must have `checks: write` permission, even if online audits are disabled.
 
 ### `advanced-security`
 
@@ -269,6 +271,40 @@ for GitHub annotations to create annotations for findings.
 > which is the default. If you set `annotations: true`, you **must**
 > also set `advanced-security: false`. The action will refuse to run
 > if you do not do this.
+
+This option is also incompatible with `checks: true`.
+
+### `checks`
+
+*Default*: `false`
+
+`checks` displays findings in a GitHub check, supporting more findings than
+[workflow annotations](#annotations). The action fails when zizmor reports
+findings or encounters an error, or when results cannot be published.
+
+Set `advanced-security: false` and leave `annotations: false` when enabling
+Checks reporting. Add `checks: write` to the job's permissions:
+
+```yaml
+permissions:
+  contents: read
+  checks: write
+```
+
+Then add these inputs to the zizmor action step:
+
+```yaml
+with:
+  advanced-security: false
+  checks: true
+```
+
+Requires zizmor v1.6.0 or later.
+
+> [!IMPORTANT]
+> Fork and Dependabot pull requests normally receive a read-only token,
+> even when the workflow requests `checks: write`. Use plain output or
+> [workflow annotations](#annotations) for those runs.
 
 ### `color`
 
@@ -316,6 +352,7 @@ The following table summarizes the permissions required and when:
 | Permission | Description | Required when? |
 | ---------- | ----------- | --------------- |
 | `security-events: write` | Required to upload results to [Advanced Security]. | When `advanced-security: true` (the default). |
+| `checks: write` | Required to publish a check run and its annotations. | When `checks: true`. |
 | `contents: read` | Required to read the contents of the repository. | When `advanced-security: true` *and* the parent repository is private. |
 | `actions: read` | Required to read the actions of the repository. | When `advanced-security: true` *and* the parent repository is private. |
 
@@ -323,7 +360,9 @@ Or, as a decision tree:
 
 ```mermaid
 graph TD
-  A["Are you using Advanced Security (the default)?"] -->|No| B@{ shape: diamond, label: "permissions: {}"}
+  A["Are you using Advanced Security (the default)?"] -->|No| F[Are you using Checks?]
+  F -->|No| B@{ shape: diamond, label: "permissions: {}"}
+  F -->|Yes| G@{ shape: diamond, label: "checks: write"}
   A -->|Yes| C[Is your repository public?]
   C -->|Yes| D@{ shape: diamond, label: "security-events: write"}
   C -->|No| E@{shape: diamond, label: "actions: read
@@ -342,6 +381,10 @@ own runners provide Python.
 If you see this error, it _probably_ means that you are running the action
 from a self-hosted runner without Python installed. Install Python onto the
 runner, or make sure it is on `PATH` by the time this action runs.
+
+When using `checks: true`, self-hosted runners also need `jq` and `curl`
+v7.76.0 or later. These are preinstalled on GitHub's supported Ubuntu runners,
+including `ubuntu-slim`.
 
 ### Changes introduce security alerts but no PR checks are shown
 
@@ -368,9 +411,9 @@ If you hit this behavior, you have a few options:
    but you **must** configure it manually &mdash; `zizmor-action` cannot do
    it for you.
 2. Set `advanced-security: false` and use another output format, like
-   [annotations](#annotations) or the default ("plain") console format
+   [checks](#checks), [annotations](#annotations), or the default ("plain") console format
    (which you get by default when you set `advanced-security: false`).
-   With either of these approaches you lose the stateful tracking and triage
+   With these approaches you lose the stateful tracking and triage
    of Advanced Security, but you'll also avoid this issue.
 
    If you choose to switch to annotations, please keep in mind
