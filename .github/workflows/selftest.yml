@@ -157,32 +157,21 @@ jobs:
         include:
           - findings: 0
             check-name: zizmor selftest
+            fixture: checks-clean.yml
           - findings: 51
             check-name: zizmor selftest (xfail)
+            fixture: checks-findings.yml
     runs-on: ubuntu-slim
     permissions:
+      contents: read
       checks: write
     env:
       CHECK_NAME: ${{ matrix.check-name }}
       CHECK_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Prepare workflow to audit
-        env:
-          FINDINGS: ${{ matrix.findings }}
-        run: |
-          cat > checks-selftest.yml <<'EOF'
-          on: issues
-          permissions: {}
-          jobs:
-            test:
-              runs-on: ubuntu-latest
-              steps:
-                - run: echo safe
-          EOF
-          for ((i = 0; i < FINDINGS; i++)); do
-            # Split the expression so the runner does not interpolate it here.
-            printf '%s%s\n' '      - run: echo $' '{{ github.event.issue.title }}' >> checks-selftest.yml
-          done
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: $/
         id: zizmor
@@ -191,7 +180,7 @@ jobs:
           advanced-security: false
           checks: true
           internal-checks-name: ${{ env.CHECK_NAME }}
-          inputs: checks-selftest.yml
+          inputs: test/assets/${{ matrix.fixture }}
           online-audits: false
           min-severity: high
 
@@ -244,19 +233,12 @@ jobs:
   selftest-checks-permission-xfail:
     name: "TEST: Checks requires write permission"
     runs-on: ubuntu-slim
-    permissions: {}
+    permissions:
+      contents: read
     steps:
-      - name: Prepare clean workflow to audit
-        run: |
-          cat > checks-selftest.yml <<'EOF'
-          on: push
-          permissions: {}
-          jobs:
-            test:
-              runs-on: ubuntu-latest
-              steps:
-                - run: echo safe
-          EOF
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: $/
         id: zizmor
@@ -265,7 +247,7 @@ jobs:
           advanced-security: false
           checks: true
           internal-checks-name: zizmor selftest (permission xfail)
-          inputs: checks-selftest.yml
+          inputs: test/assets/checks-clean.yml
           online-audits: false
 
       - name: Assert failure
