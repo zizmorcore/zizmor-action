@@ -60,7 +60,7 @@ case "${exitcode}" in
                     if $part == "" or $part == "." then .
                     elif $part == ".." then .[:-1]
                     else . + [$part] end) | "/" + join("/");
-            ($workspace | normalize) + "/" as $root |
+            (($workspace | normalize) + "/") as $root |
             if type != "array" then error("expected findings array") else . end |
             map(select(.ignored != true) |
                 . as $finding |
