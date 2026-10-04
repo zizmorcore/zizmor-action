@@ -198,10 +198,11 @@ jobs:
           expected=success
           if [[ "${FINDINGS}" -gt 0 ]]; then expected=failure; fi
           [[ "${OUTCOME}" == "${expected}" ]]
+          # GitHub replaces details_url on checks created with GITHUB_TOKEN.
+          # The API defaults to the latest check per name; these cases run serially.
           gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100" \
-            | jq -e --arg url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-                --arg conclusion "${expected}" --argjson count "${FINDINGS}" '
-                [.check_runs[] | select(.name == "zizmor" and .details_url == $url)] |
+            | jq -e --arg conclusion "${expected}" --argjson count "${FINDINGS}" '
+                [.check_runs[] | select(.name == "zizmor")] |
                 length == 1 and (.[0] | .status == "completed" and
                     .conclusion == $conclusion and .output.annotations_count == $count)'
 
