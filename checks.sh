@@ -89,7 +89,9 @@ case "${exitcode}" in
                         High: "failure"
                     }[$finding.determinations.severity] // error("unknown severity")),
                     title: $finding.ident[:255],
-                    message: "\($finding.desc): \($primary.symbolic.annotation)\n\($finding.url)"
+                    # Annotation bodies are plain text; use paragraphs for readability.
+                    message: ("\($finding.desc)\n\n\($primary.symbolic.annotation)\n\n" +
+                        "Documentation: \($finding.url)")
                 })
         ' "${results}" > "${tempdir}/findings.json"; then
             echo "::error::Could not read zizmor JSON results for Checks reporting"
@@ -106,6 +108,7 @@ case "${exitcode}" in
         ' "${tempdir}/findings.json"
         # 16,000 Unicode code points fit within the API limit of 64 KB.
         jq 'map(select(.path != null) |
+            .title = ("\(.severity): \(.title)" | .[:255]) |
             del(.display_path, .severity, .description, .url) | .message |= .[:16000])' \
             "${tempdir}/findings.json" > "${tempdir}/annotations.json"
         count="$(jq length "${tempdir}/annotations.json")"
