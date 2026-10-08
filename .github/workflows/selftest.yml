@@ -149,6 +149,112 @@ jobs:
 
           [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
 
+  selftest-checks:
+    name: "TEST: Checks with ${{ matrix.findings }} findings"
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    strategy:
+      matrix:
+        include:
+          - findings: 0
+            check-name: zizmor selftest
+            fixture: checks-clean.yml
+          - findings: 51
+            check-name: zizmor selftest (xfail)
+            fixture: checks-findings.yml
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      checks: write
+    env:
+      CHECK_NAME: ${{ matrix.check-name }}
+      CHECK_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          checks: true
+          internal-checks-name: ${{ env.CHECK_NAME }}
+          inputs: test/assets/${{ matrix.fixture }}
+          online-audits: false
+          min-severity: high
+
+      - name: Assert check results and PR association
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FINDINGS: ${{ matrix.findings }}
+          OUTCOME: ${{ steps.zizmor.outcome }}
+          PR_NUMBER: ${{ github.event.pull_request.number || 0 }}
+        run: |
+          expected=success
+          if [[ "${FINDINGS}" -gt 0 ]]; then expected=failure; fi
+          [[ "${OUTCOME}" == "${expected}" ]]
+          # GitHub replaces details_url on checks created with GITHUB_TOKEN.
+          # The API defaults to the latest check per name; each case has its own name.
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${CHECK_SHA}/check-runs?per_page=100" \
+            | jq -e --arg name "${CHECK_NAME}" \
+                --arg conclusion "${expected}" --argjson count "${FINDINGS}" \
+                --argjson pr "${PR_NUMBER}" '
+                [.check_runs[] | select(.name == $name)] |
+                length == 1 and (.[0] | .status == "completed" and
+                    .conclusion == $conclusion and .output.annotations_count == $count and
+                    (if $pr == 0 then true else
+                        .pull_requests | any(.number == $pr) end) and
+                    (.output.summary | contains("View workflow run and logs")) and
+                    (if $count == 0 then .output.title == "No findings"
+                     else .output.text | contains("template-injection") end))'
+
+  selftest-checks-invalid-xfail:
+    name: "TEST: Checks rejects incompatible modes"
+    strategy:
+      matrix:
+        mode: [advanced-security, annotations]
+    runs-on: ubuntu-slim
+    steps:
+      - uses: $/
+        id: zizmor
+        continue-on-error: true
+        with:
+          checks: true
+          internal-checks-name: zizmor selftest (invalid xfail)
+          advanced-security: ${{ matrix.mode == 'advanced-security' }}
+          annotations: ${{ matrix.mode == 'annotations' }}
+
+      - name: Assert failure
+        env:
+          OUTCOME: ${{ steps.zizmor.outcome }}
+        run: test "${OUTCOME}" = failure
+
+  selftest-checks-permission-xfail:
+    name: "TEST: Checks requires write permission"
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          checks: true
+          internal-checks-name: zizmor selftest (permission xfail)
+          inputs: test/assets/checks-clean.yml
+          online-audits: false
+
+      - name: Assert failure
+        env:
+          OUTCOME: ${{ steps.zizmor.outcome }}
+        run: test "${OUTCOME}" = failure
+
   selftest-fail-on-no-inputs-xfail:
     name: "TEST: 'fail-on-no-inputs: true' causes failure when no inputs are collected"
     runs-on: ubuntu-latest
@@ -227,6 +333,9 @@ jobs:
       - selftest-plain-gha-hazmat-offline-audits-xfail
       - selftest-annotations
       - selftest-annotations-advanced-security-exclusive-xfail
+      - selftest-checks
+      - selftest-checks-invalid-xfail
+      - selftest-checks-permission-xfail
       - selftest-fail-on-no-inputs-xfail
       - selftest-fail-on-no-inputs-disabled
       - selftest-output-file-output-is-present-when-advanced-security
@@ -240,3 +349,4 @@ jobs:
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:
           jobs: ${{ toJSON(needs) }}
+          allowed-skips: selftest-checks

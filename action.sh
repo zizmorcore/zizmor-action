@@ -58,11 +58,22 @@ if [[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" == "true" && "${GHA_ZIZMOR_ANNOTATIONS}"
     die "If you meant to enable 'annotations: true', you must explicitly set 'advanced-security: false'"
 fi
 
+if [[ "${GHA_ZIZMOR_CHECKS:-false}" == "true" ]]; then
+    [[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" != "true" && "${GHA_ZIZMOR_ANNOTATIONS}" != "true" ]] \
+        || die "'checks: true' requires 'advanced-security: false' and 'annotations: false'"
+    installed jq || die "Checks reporting requires jq"
+    installed curl || die "Checks reporting requires curl >= 7.76.0"
+    [[ -n "${GHA_ZIZMOR_TOKEN}" ]] || die "Checks reporting requires a token with 'checks: write' permission"
+    [[ -n "${GHA_ZIZMOR_INTERNAL_CHECKS_NAME}" ]] || die "'internal-checks-name' must not be empty"
+fi
+
 if [[ "${GHA_ZIZMOR_ADVANCED_SECURITY}" == "true" ]]; then
     arguments+=("--format=sarif")
     output "sarif-file" "${output}"
 elif [[ "${GHA_ZIZMOR_ANNOTATIONS}" == "true" ]]; then
     arguments+=("--format=github")
+elif [[ "${GHA_ZIZMOR_CHECKS:-false}" == "true" ]]; then
+    arguments+=("--format=json-v1")
 fi
 
 [[ -n "${GHA_ZIZMOR_COLLECT}" ]] && arguments+=("--collect=${GHA_ZIZMOR_COLLECT}")
@@ -84,6 +95,12 @@ lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
 read -r requirement _ < "${lockfile}"
 [[ "${requirement}" == zizmor==* ]] || die "Missing zizmor pin in ${lockfile}"
 zizmor_version="${requirement#zizmor==}"
+
+if [[ "${GHA_ZIZMOR_CHECKS:-false}" == "true" ]]; then
+    IFS=. read -r major minor _ <<< "${zizmor_version}"
+    (( major > 1 || (major == 1 && minor >= 6) )) \
+        || die "Checks reporting requires zizmor >= 1.6.0"
+fi
 
 # The lock pins every wheel for this version by hash, so `--require-hashes`
 # gives us the same guarantee the pinned container digests used to: pip picks
@@ -125,14 +142,18 @@ chmod +x "${zizmor}"
 #   as one or more flags.
 cd "${GITHUB_WORKSPACE}"
 
-# shellcheck disable=SC2086
-GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor}" \
-    "${arguments[@]}" \
-    -- \
-    ${GHA_ZIZMOR_INPUTS} \
-        | tee "${output}"
-
-exitcode="${PIPESTATUS[0]}"
+if [[ "${GHA_ZIZMOR_CHECKS:-false}" == "true" ]]; then
+    exitcode=0
+    # shellcheck disable=SC2086
+    GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor}" \
+        "${arguments[@]}" -- ${GHA_ZIZMOR_INPUTS} > "${output}" || exitcode=$?
+    bash "${GITHUB_ACTION_PATH}/checks.sh" "${output}" "${exitcode}"
+else
+    # shellcheck disable=SC2086
+    GH_TOKEN="${GHA_ZIZMOR_TOKEN}" "${zizmor}" \
+        "${arguments[@]}" -- ${GHA_ZIZMOR_INPUTS} | tee "${output}"
+    exitcode="${PIPESTATUS[0]}"
+fi
 dbg "zizmor exited with code ${exitcode}"
 
 if [[ "${exitcode}" -eq 3 ]]; then
