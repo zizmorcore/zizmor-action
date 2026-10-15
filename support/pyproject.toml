@@ -146,6 +146,9 @@ zizmor-1-30-1 = [
 zizmor-1-31-0 = [
     "zizmor==1.31.0",
 ]
+zizmor-1-31-1 = [
+    "zizmor==1.31.1",
+]
 zizmor-1-4-0 = [
     "zizmor==1.4.0",
 ]
@@ -174,5 +177,5 @@ zizmor-1-9-0 = [
     "zizmor==1.9.0",
 ]
 zizmor-latest = [
-    "zizmor==1.31.0",
+    "zizmor==1.31.1",
 ]
