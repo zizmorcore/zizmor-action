@@ -78,7 +78,7 @@ def main() -> None:
         uv(
             "pip", "compile",
             "--group", group,
-            "--universal", "--python-version", "3.10",
+            "--universal", "--python-version", "3.11",
             "--generate-hashes", "--no-build",
             "--no-header", "--no-annotate",
             "--output-file", str(LOCKS / f"{group}.txt"),

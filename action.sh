@@ -95,6 +95,7 @@ mkdir -p "${wheeldir}"
 python3 -m pip download \
     --quiet --no-input --disable-pip-version-check \
     --only-binary=:all: \
+    --python-version=3.11 \
     --no-deps \
     --require-hashes \
     --dest "${wheeldir}" \

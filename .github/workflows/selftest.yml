@@ -20,8 +20,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        # ubuntu-slim has no Docker daemon, but it does ship Python.
-        os: [ubuntu-latest, ubuntu-24.04-arm, ubuntu-slim]
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+            # ubuntu-slim has no Docker daemon, but it does ship Python.
+          - ubuntu-slim
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
     runs-on: ${{ matrix.os }}
     permissions:
       security-events: write
