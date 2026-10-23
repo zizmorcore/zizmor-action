@@ -32,6 +32,9 @@ zizmor-1-10-0 = [
 zizmor-1-11-0 = [
     "zizmor==1.11.0",
 ]
+zizmor-1-11-1rc1 = [
+    "zizmor==1.11.1rc1",
+]
 zizmor-1-12-0 = [
     "zizmor==1.12.0",
 ]
@@ -77,6 +80,12 @@ zizmor-1-17-0 = [
 zizmor-1-18-0 = [
     "zizmor==1.18.0",
 ]
+zizmor-1-18-0rc2 = [
+    "zizmor==1.18.0rc2",
+]
+zizmor-1-18-0rc3 = [
+    "zizmor==1.18.0rc3",
+]
 zizmor-1-19-0 = [
     "zizmor==1.19.0",
 ]
@@ -101,11 +110,29 @@ zizmor-1-22-0 = [
 zizmor-1-23-0 = [
     "zizmor==1.23.0",
 ]
+zizmor-1-23-0rc1 = [
+    "zizmor==1.23.0rc1",
+]
+zizmor-1-23-0rc5 = [
+    "zizmor==1.23.0rc5",
+]
+zizmor-1-23-0rc6 = [
+    "zizmor==1.23.0rc6",
+]
+zizmor-1-23-0rc7 = [
+    "zizmor==1.23.0rc7",
+]
 zizmor-1-23-1 = [
     "zizmor==1.23.1",
 ]
 zizmor-1-24-0 = [
     "zizmor==1.24.0",
+]
+zizmor-1-24-0rc2 = [
+    "zizmor==1.24.0rc2",
+]
+zizmor-1-24-0rc3 = [
+    "zizmor==1.24.0rc3",
 ]
 zizmor-1-24-1 = [
     "zizmor==1.24.1",
@@ -140,6 +167,12 @@ zizmor-1-3-1 = [
 zizmor-1-30-0 = [
     "zizmor==1.30.0",
 ]
+zizmor-1-30-0rc1 = [
+    "zizmor==1.30.0rc1",
+]
+zizmor-1-30-0rc2 = [
+    "zizmor==1.30.0rc2",
+]
 zizmor-1-30-1 = [
     "zizmor==1.30.1",
 ]
@@ -172,6 +205,12 @@ zizmor-1-7-0 = [
 ]
 zizmor-1-8-0 = [
     "zizmor==1.8.0",
+]
+zizmor-1-8-0rc1 = [
+    "zizmor==1.8.0rc1",
+]
+zizmor-1-8-0rc2 = [
+    "zizmor==1.8.0rc2",
 ]
 zizmor-1-9-0 = [
     "zizmor==1.9.0",
