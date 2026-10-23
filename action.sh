@@ -37,15 +37,18 @@ output="${RUNNER_TEMP}/zizmor"
 
 version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
 
-# `latest` selects the requirements compiled from the zizmor-latest group.
-# Like exact versions, it is pinned in this action's own tree.
+# `latest` and `prerelease` select the requirements compiled from their groups.
+# Like exact versions, they are pinned in this action's own tree.
 case "${GHA_ZIZMOR_VERSION}" in
     latest|"")
         zizmor_version="latest"
         ;;
+    prerelease)
+        zizmor_version="prerelease"
+        ;;
     *)
         [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-            || die "'version' must be 'latest' or an exact X.Y.Z version (optionally with a prerelease suffix)"
+            || die "'version' must be 'latest', 'prerelease', or an exact X.Y.Z version (optionally with a prerelease suffix)"
         zizmor_version="${GHA_ZIZMOR_VERSION#v}"
         ;;
 esac
@@ -80,7 +83,7 @@ lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
     || die "Unknown version ${zizmor_version}; was it released after this action?"
 
 # The generated requirements start with the exact zizmor pin, including
-# for `latest`. Read it to locate the executable inside the wheel.
+# for the aliases. Read it to locate the executable inside the wheel.
 read -r requirement _ < "${lockfile}"
 [[ "${requirement}" == zizmor==* ]] || die "Missing zizmor pin in ${lockfile}"
 zizmor_version="${requirement#zizmor==}"

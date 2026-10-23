@@ -218,3 +218,6 @@ zizmor-1-9-0 = [
 zizmor-latest = [
     "zizmor==1.31.1",
 ]
+zizmor-prerelease = [
+    "zizmor==1.30.0rc2",
+]

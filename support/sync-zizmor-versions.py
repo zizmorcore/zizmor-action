@@ -5,7 +5,7 @@
 # ///
 
 """Add zizmor releases (including prereleases) to uv dependency groups, compile
-hash-pinned requirements, and update the default to the latest stable version."""
+hash-pinned requirements, and update the stable and prerelease aliases."""
 
 import json
 import os
@@ -66,11 +66,15 @@ def main() -> None:
         key=Version,
     )
     stable_versions = [version for version in versions if not Version(version).is_prerelease]
+    prerelease_versions = [version for version in versions if Version(version).is_prerelease]
     if not stable_versions:
         die(f"Found no stable release of {PACKAGE!r} on PyPI")
+    if not prerelease_versions:
+        die(f"Found no prerelease of {PACKAGE!r} on PyPI")
 
     groups = {f"{PACKAGE}-{version}": version for version in versions}
     groups[f"{PACKAGE}-latest"] = stable_versions[-1]
+    groups[f"{PACKAGE}-prerelease"] = prerelease_versions[-1]
     LOCKS.mkdir(exist_ok=True)
     for group, version in groups.items():
         # The groups are independent: never resolve all versions together.
@@ -85,6 +89,7 @@ def main() -> None:
         )
 
     print(f"Default version: {stable_versions[-1]}", file=sys.stderr)
+    print(f"Prerelease version: {prerelease_versions[-1]}", file=sys.stderr)
 
 
 if __name__ == "__main__":
