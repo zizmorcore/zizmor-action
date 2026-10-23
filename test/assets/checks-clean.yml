@@ -1,0 +1,8 @@
+# Clean workflow for the Checks self-tests, including the missing-permission case.
+on: issues
+permissions: {}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo safe

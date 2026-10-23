@@ -1,0 +1,59 @@
+# 51 intentional template-injection findings exercise the Checks API's
+# 50-annotation batch limit. This workflow is only scanned, never executed.
+on: issues
+permissions: {}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
+      - run: echo ${{ github.event.issue.title }}
