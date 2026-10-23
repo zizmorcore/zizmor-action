@@ -43,7 +43,7 @@ jobs:
           body: |
             :robot: :warning: :robot:
 
-            A newer stable release of `zizmor` is available on PyPI.
+            New releases of `zizmor` are available on PyPI.
 
             This PR refreshes the version groups in `support/pyproject.toml`,
             including `zizmor-latest` for the default version, and their

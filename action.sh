@@ -35,7 +35,7 @@ installed python3 || die "Cannot run this action without Python"
 
 output="${RUNNER_TEMP}/zizmor"
 
-version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+$'
+version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
 
 # `latest` selects the requirements compiled from the zizmor-latest group.
 # Like exact versions, it is pinned in this action's own tree.
@@ -45,7 +45,7 @@ case "${GHA_ZIZMOR_VERSION}" in
         ;;
     *)
         [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-            || die "'version' must be 'latest' or an exact X.Y.Z version"
+            || die "'version' must be 'latest' or an exact X.Y.Z version (optionally with a prerelease suffix)"
         zizmor_version="${GHA_ZIZMOR_VERSION#v}"
         ;;
 esac

@@ -56,8 +56,8 @@ inputs:
     description: |
       The version of zizmor to use.
 
-      Either an exact `X.Y.Z` version or `latest` (the default), i.e. the
-      newest zizmor release this action knows about.
+      Either an exact version (including prereleases) or `latest` (the default),
+      i.e. the newest stable zizmor release this action knows about.
     required: false
     default: latest
   token:

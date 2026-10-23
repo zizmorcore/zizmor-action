@@ -4,8 +4,8 @@
 # dependencies = ["packaging"]
 # ///
 
-"""Add stable zizmor releases to uv dependency groups, compile hash-pinned
-requirements, and update the default zizmor version."""
+"""Add zizmor releases (including prereleases) to uv dependency groups, compile
+hash-pinned requirements, and update the default to the latest stable version."""
 
 import json
 import os
@@ -61,16 +61,16 @@ def main() -> None:
         (
             version
             for version, files in releases().items()
-            if not Version(version).is_prerelease
-            and any(f["packagetype"] == "bdist_wheel" and not f["yanked"] for f in files)
+            if any(f["packagetype"] == "bdist_wheel" and not f["yanked"] for f in files)
         ),
         key=Version,
     )
-    if not versions:
+    stable_versions = [version for version in versions if not Version(version).is_prerelease]
+    if not stable_versions:
         die(f"Found no stable release of {PACKAGE!r} on PyPI")
 
     groups = {f"{PACKAGE}-{version}": version for version in versions}
-    groups[f"{PACKAGE}-latest"] = versions[-1]
+    groups[f"{PACKAGE}-latest"] = stable_versions[-1]
     LOCKS.mkdir(exist_ok=True)
     for group, version in groups.items():
         # The groups are independent: never resolve all versions together.
@@ -84,7 +84,7 @@ def main() -> None:
             "--output-file", str(LOCKS / f"{group}.txt"),
         )
 
-    print(f"Default version: {versions[-1]}", file=sys.stderr)
+    print(f"Default version: {stable_versions[-1]}", file=sys.stderr)
 
 
 if __name__ == "__main__":

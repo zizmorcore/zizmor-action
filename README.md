@@ -223,8 +223,9 @@ See `zizmor`'s [Filtering results] documentation for more information.
 *Default*: `latest`
 
 `version` is the version of `zizmor` to use. It must be provided as
-either an exact version (e.g. `v1.7.0`) or the special value `latest`,
-which uses the newest `zizmor` release this action knows about.
+either an exact version (e.g. `v1.7.0`, including prereleases such as `v1.7.0rc1`)
+or the special value `latest`, which uses the newest stable `zizmor` release
+this action knows about.
 
 > [!NOTE]
 > You can specify `version` with or without the `v` prefix.
