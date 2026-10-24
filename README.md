@@ -347,6 +347,17 @@ If you see this error, it _probably_ means that you are running the action
 from a self-hosted runner without Python installed. Install Python onto the
 runner, or make sure it is on `PATH` by the time this action runs.
 
+### "No module named pip"
+
+This action currently uses `python3 -m pip download` to bootstrap zizmor,
+meaning that your Python distribution must also already have pip set up
+(as is the default).
+
+If you see this or a similar error, it means you have Python 3 installed as
+`python3`, but your Python 3 distribution lacks `pip`. The solution
+is to install `pip`, potentially either via a new Python distribution
+(e.g. `actions/setup-python`) _or_ via `python3 -m ensurepip`.
+
 ### Changes introduce security alerts but no PR checks are shown
 
 > [!NOTE]
