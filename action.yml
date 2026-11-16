@@ -28,6 +28,16 @@ inputs:
       See https://docs.zizmor.sh/usage/#input-collection for more information.
     required: false
     default: 'default'
+  strict-collection:
+    description: |
+      Whether to fail if zizmor can't parse a collected input.
+
+      By default, zizmor warns about and skips inputs with syntax or schema
+      errors. Setting this to `true` makes those errors fatal.
+
+      This input only works with zizmor v1.7.0 and later.
+    required: false
+    default: "false"
   online-audits:
     description: |
       Whether to run online audits.
@@ -115,6 +125,7 @@ runs:
       env:
         GHA_ZIZMOR_INPUTS: ${{ inputs.inputs }}
         GHA_ZIZMOR_COLLECT: ${{ inputs.collect }}
+        GHA_ZIZMOR_STRICT_COLLECTION: ${{ inputs.strict-collection }}
         GHA_ZIZMOR_ONLINE_AUDITS: ${{ inputs.online-audits }}
         GHA_ZIZMOR_PERSONA: ${{ inputs.persona }}
         GHA_ZIZMOR_MIN_SEVERITY: ${{ inputs.min-severity }}
