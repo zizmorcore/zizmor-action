@@ -19,6 +19,7 @@ Run [`zizmor`] from GitHub Actions!
 - [Inputs](#inputs)
   - [`inputs`](#inputs)
   - [`collect`](#collect)
+  - [`strict-collection`](#strict-collection)
   - [`online-audits`](#online-audits)
   - [`persona`](#persona)
   - [`min-severity`](#min-severity)
@@ -167,6 +168,22 @@ See `zizmor`'s [Input collection] documentation for more information.
 
 See `zizmor`'s [Input collection] documentation for more information
 on the valid modes.
+
+### `strict-collection`
+
+*Default*: `false`
+
+`strict-collection` controls whether the action fails when `zizmor`
+can't parse a collected input. By default, `zizmor` warns about and skips
+any workflow or action definition with syntax or schema errors. Set this
+to `true` to make those errors fail the action instead.
+
+See `zizmor`'s [Input collection] documentation for more information.
+
+> [!IMPORTANT]
+> This input only works with `zizmor v1.7.0` and later. Earlier versions
+> of `zizmor` already fail on inputs they can't parse, and will reject
+> this flag, so leave it unset when using them.
 
 ### `online-audits`
 

@@ -219,6 +219,55 @@ jobs:
 
       # TODO: Would be nice to grep the input or similar here to confirm we only collected `./action.yml`.
 
+  selftest-strict-collection-disabled:
+    name: "TEST: 'strict-collection: false' skips inputs that fail to parse"
+    runs-on: ubuntu-latest
+    permissions: {}
+
+    steps:
+      - name: create a workflow that fails to parse
+        run: |
+          mkdir -p broken/.github/workflows
+          printf 'jobs: [\n' > broken/.github/workflows/broken.yml
+
+      - uses: $/
+        with:
+          advanced-security: false
+          online-audits: false
+          inputs: broken/
+          fail-on-no-inputs: false
+          strict-collection: false
+
+  selftest-strict-collection-xfail:
+    name: "TEST: 'strict-collection: true' fails on inputs that fail to parse"
+    runs-on: ubuntu-latest
+    permissions: {}
+
+    steps:
+      - name: create a workflow that fails to parse
+        run: |
+          mkdir -p broken/.github/workflows
+          printf 'jobs: [\n' > broken/.github/workflows/broken.yml
+
+      - uses: $/
+        id: zizmor
+        continue-on-error: true
+        with:
+          advanced-security: false
+          online-audits: false
+          inputs: broken/
+          fail-on-no-inputs: false
+          strict-collection: true
+
+      - name: assert failure
+        env:
+          XFAIL: ${{ steps.zizmor.outcome == 'failure' }}
+          JOB_NAME: ${{ github.job }}
+        run: |
+          echo "xfail ${JOB_NAME}: ${XFAIL}"
+
+          [[ "${XFAIL}" == "true" ]] || { >&2 echo "expected step to fail"; exit 1; }
+
   all-selftests-pass:
     if: always()
 
@@ -235,6 +284,8 @@ jobs:
       - selftest-fail-on-no-inputs-disabled
       - selftest-output-file-output-is-present-when-advanced-security
       - selftest-collect
+      - selftest-strict-collection-disabled
+      - selftest-strict-collection-xfail
 
     runs-on: ubuntu-latest
 
