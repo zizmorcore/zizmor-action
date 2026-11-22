@@ -234,7 +234,7 @@ jobs:
         with:
           advanced-security: false
           online-audits: false
-          inputs: broken
+          inputs: broken/
           fail-on-no-inputs: false
           strict-collection: false
 
@@ -255,7 +255,7 @@ jobs:
         with:
           advanced-security: false
           online-audits: false
-          inputs: broken
+          inputs: broken/
           fail-on-no-inputs: false
           strict-collection: true
 
