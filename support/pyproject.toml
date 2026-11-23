@@ -194,6 +194,9 @@ zizmor-1-32-0rc2 = [
 zizmor-1-33-0 = [
     "zizmor==1.33.0",
 ]
+zizmor-1-33-1 = [
+    "zizmor==1.33.1",
+]
 zizmor-1-4-0 = [
     "zizmor==1.4.0",
 ]
@@ -228,7 +231,7 @@ zizmor-1-9-0 = [
     "zizmor==1.9.0",
 ]
 zizmor-latest = [
-    "zizmor==1.33.0",
+    "zizmor==1.33.1",
 ]
 zizmor-prerelease = [
     "zizmor==1.32.0rc2",
