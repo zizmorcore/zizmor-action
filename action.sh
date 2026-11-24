@@ -4,6 +4,8 @@
 
 set -eu
 
+export PYTHONSAFEPATH=1
+
 dbg() {
     echo "::debug::${*}"
 }
