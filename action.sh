@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor from a hash-verified wheel
-
 set -eu
 
 dbg() {
@@ -25,33 +23,29 @@ installed() {
     command -v "${1}" >/dev/null 2>&1
 }
 
+verify_sha256() {
+    local file="$1" expected="$2"
+    local output digest
+
+    if installed sha256sum; then
+        output=$(sha256sum -b < "$file") || return 1
+    elif installed shasum; then
+        output=$(shasum -a 256 -b < "$file") || return 1
+    else
+        die "Missing required tool: sha256sum or shasum"
+    fi
+
+    read -r digest _ <<< "$output"
+    [[ "$digest" == "$expected" ]]
+}
+
 output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
 
-installed python3 || die "Cannot run this action without Python"
-
 [[ "${RUNNER_OS}" != "Linux" ]] && warn "Unsupported runner OS: ${RUNNER_OS}"
 
 output="${RUNNER_TEMP}/zizmor"
-
-version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
-
-# `latest` and `prerelease` select the requirements compiled from their groups.
-# Like exact versions, they are pinned in this action's own tree.
-case "${GHA_ZIZMOR_VERSION}" in
-    latest|"")
-        zizmor_version="latest"
-        ;;
-    prerelease)
-        zizmor_version="prerelease"
-        ;;
-    *)
-        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-            || die "'version' must be 'latest', 'prerelease', or an exact X.Y.Z version (optionally with a prerelease suffix)"
-        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
-        ;;
-esac
 
 arguments=()
 arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
@@ -79,44 +73,53 @@ if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
 
-lockfile="${GITHUB_ACTION_PATH}/support/locks/zizmor-${zizmor_version}.txt"
-[[ -f "${lockfile}" ]] \
-    || die "Unknown version ${zizmor_version}; was it released after this action?"
+version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
 
-# The generated requirements start with the exact zizmor pin, including
-# for the aliases. Read it to locate the executable inside the wheel.
-read -r requirement _ < "${lockfile}"
-[[ "${requirement}" == zizmor==* ]] || die "Missing zizmor pin in ${lockfile}"
-zizmor_version="${requirement#zizmor==}"
+locks="${GITHUB_ACTION_PATH}/support/locks"
+case "${GHA_ZIZMOR_VERSION}" in
+    # Read the appropriate latest or prerelease version from its respective file.
+    latest|prerelease|"")
+        read -r zizmor_version < "${locks}/${GHA_ZIZMOR_VERSION:-latest}"
+        ;;
+    *)
+        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
+            || die "'version' must be 'latest', 'prerelease', or an exact X.Y.Z version (optionally with a prerelease suffix)"
+        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
+        ;;
+esac
 
-# The lock pins every wheel for this version by hash, so `--require-hashes`
-# gives us the same guarantee the pinned container digests used to: pip picks
-# the wheel matching the runner and verifies it against that set.
-wheeldir="${RUNNER_TEMP}/zizmor-wheel"
-rm -rf "${wheeldir}"
-mkdir -p "${wheeldir}"
+manifest="${locks}/zizmor-${zizmor_version}.tsv"
+[[ -f "${manifest}" ]] || die "Unknown version ${zizmor_version}; was it released after this action?"
 
-python3 -m pip download \
-    --quiet --no-input --disable-pip-version-check \
-    --only-binary=:all: \
-    --python-version=3.11 \
-    --no-deps \
-    --require-hashes \
-    --dest "${wheeldir}" \
-    --requirement "${lockfile}"
+target="${RUNNER_OS}-${RUNNER_ARCH}"
+exe=zizmor
+[[ ${RUNNER_OS} == Windows ]] && exe=zizmor.exe
 
-wheels=("${wheeldir}"/*.whl)
-[[ -f "${wheels[0]}" ]] || die "No zizmor ${zizmor_version} wheel for this runner"
+while IFS=$'\t' read -r platform sha256 url; do
+    [[ ${platform} == "${target}" ]] && break
+done < "${manifest}"
+[[ ${platform:-} == "${target}" ]] || die "No zizmor ${zizmor_version} wheel for ${target}"
 
-# Wheels are just ZIPs, and zizmor's contains nothing but its executable, so
-# unpacking one is the whole installation: no environment to create or remove.
-python3 -m zipfile --extract "${wheels[0]}" "${wheeldir}/unpacked"
+for tool in curl unzip; do
+    installed "${tool}" || die "Missing required tool: ${tool}"
+done
 
-zizmor="${wheeldir}/unpacked/zizmor-${zizmor_version}.data/scripts/zizmor"
-[[ -f "${zizmor}" ]] || zizmor="${zizmor}.exe"
-[[ -f "${zizmor}" ]] || die "Wheel for zizmor ${zizmor_version} contains no executable"
+# NOTE: We don't bother cleaning the tempdir up because this is all
+# in an ephemeral job.
+wheeldir=$(mktemp -d "${RUNNER_TEMP}/zizmor-wheel.XXXXXXXX")
 
-# ZIPs carry no permission bits that `zipfile` restores.
+# Write the wheel to `.../zizmor.whl`, regardless of its actual filename.
+wheel="${wheeldir}/zizmor.whl"
+curl --disable --proto '=https' --tlsv1.2 --location \
+    --fail --silent --show-error --retry 3 \
+    --output "${wheel}" "${url}"
+
+verify_sha256 "${wheel}" "${sha256}" \
+    || die "SHA-256 verification failed for zizmor ${zizmor_version} on ${target}"
+
+# Extract just the `zizmor[.exe]` binary, which is at a fixed path within the wheel.
+zizmor="${wheeldir}/${exe}"
+unzip -p "${wheel}" "zizmor-${zizmor_version}.data/scripts/${exe}" > "${zizmor}"
 chmod +x "${zizmor}"
 
 # Notes:
