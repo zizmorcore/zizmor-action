@@ -22,9 +22,12 @@ PYPI_JSON = f"https://pypi.org/pypi/{PACKAGE}/json"
 RETRIES = 5
 
 RunnerTarget = NewType("RunnerTarget", str)
+"""Key from RUNNER_OS and RUNNER_ARCH, e.g. Linux-X64."""
 
 
 class ReleaseFile(TypedDict):
+    """Metadata from a single distribution."""
+
     filename: str
     packagetype: str
     yanked: bool
@@ -62,8 +65,7 @@ def die(message: str) -> NoReturn:
 
 
 def releases() -> dict[str, list[ReleaseFile]]:
-    """The PyPI release index for `PACKAGE`. PyPI is occasionally flaky, so
-    this retries a few times before giving up."""
+    """Fetch zizmor's distributions, keyed by their version."""
     for attempt in range(1, RETRIES + 1):
         try:
             with urllib.request.urlopen(PYPI_JSON, timeout=30) as response:
@@ -77,6 +79,10 @@ def releases() -> dict[str, list[ReleaseFile]]:
 
 
 def wheel_target(filename: str) -> RunnerTarget | None:
+    """Return the runner target, or None for a wheel with only manylinux tags.
+
+    Unexpected tags or tags mapping to different runners cause sync to fail.
+    """
     _, _, _, tags = parse_wheel_filename(filename)
     target = None
     for tag in tags:
@@ -94,6 +100,7 @@ def wheel_target(filename: str) -> RunnerTarget | None:
 
 
 def manifest(files: list[ReleaseFile]) -> str:
+    """Turn a list of files in a zizmor release into a TSV manifest."""
     pins: dict[RunnerTarget, WheelPin] = {}
     for file in files:
         if file["packagetype"] != "bdist_wheel" or file["yanked"]:
@@ -108,8 +115,7 @@ def manifest(files: list[ReleaseFile]) -> str:
         pins[target] = pin
 
     return "".join(
-        f"{target}\t{pin.sha256}\t{pin.url}\n"
-        for target, pin in sorted(pins.items())
+        f"{target}\t{pin.sha256}\t{pin.url}\n" for target, pin in sorted(pins.items())
     )
 
 
