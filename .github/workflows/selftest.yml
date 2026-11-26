@@ -23,7 +23,6 @@ jobs:
         os:
           - ubuntu-latest
           - ubuntu-24.04-arm
-            # ubuntu-slim has no Docker daemon, but it does ship Python.
           - ubuntu-slim
           - ubuntu-22.04
     runs-on: ${{ matrix.os }}

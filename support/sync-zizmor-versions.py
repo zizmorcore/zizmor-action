@@ -4,18 +4,18 @@
 # dependencies = ["packaging"]
 # ///
 
-"""Add zizmor releases (including prereleases) to uv dependency groups, compile
-hash-pinned requirements, and update the stable and prerelease aliases."""
+"""Pin the wheel URL and digest for each release and runner platform."""
 
 import json
 import os
-import subprocess
+import re
 import sys
 import time
 import urllib.request
 from pathlib import Path
 from typing import Any, NoReturn
 
+from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 
 PACKAGE = "zizmor"
@@ -48,23 +48,52 @@ def releases() -> dict[str, list[dict[str, Any]]]:
     raise AssertionError("unreachable")
 
 
-def uv(*args: str) -> None:
-    subprocess.run(
-        ["uv", "--quiet", "--no-python-downloads", *args],
-        cwd=HERE,
-        check=True,
-    )
+def wheel_target(platform: str) -> str | None:
+    # zizmor's musllinux wheels contain static executables that also run on glibc.
+    if match := re.fullmatch(r"(musllinux|macosx)_\d+_\d+_(\w+)", platform):
+        family, arch = match.groups()
+        os_name = "Linux" if family == "musllinux" else "macOS"
+        return f"{os_name}-{arch}"
+
+    if platform.startswith("manylinux"):
+        return None
+
+    return {
+        "win32": "Windows-X86",
+        "win_amd64": "Windows-X64",
+        "win_arm64": "Windows-ARM64",
+    }[platform]
+
+
+def manifest(files: list[dict[str, Any]]) -> str:
+    rows = {}
+    for file in files:
+        if file["packagetype"] != "bdist_wheel" or file["yanked"]:
+            continue
+        filename = file["filename"]
+        _, _, _, tags = parse_wheel_filename(filename)
+        for tag in tags:
+            if (tag.interpreter, tag.abi) != ("py3", "none"):
+                die(f"Unexpected wheel tag {tag} in {filename}")
+            try:
+                target = wheel_target(tag.platform)
+            except KeyError:
+                die(f"Unexpected wheel platform {tag.platform} in {filename}")
+            if target is None:
+                continue
+            row = (target, file["digests"]["sha256"], file["url"])
+            if rows.setdefault(target, row) != row:
+                die(f"Conflicting wheels for {target}: {filename} and {rows[target][-1]}")
+
+    return "".join("\t".join(rows[target]) + "\n" for target in sorted(rows))
 
 
 def main() -> None:
-    versions = sorted(
-        (
-            version
-            for version, files in releases().items()
-            if any(f["packagetype"] == "bdist_wheel" and not f["yanked"] for f in files)
-        ),
-        key=Version,
-    )
+    manifests = {}
+    for version, files in releases().items():
+        if data := manifest(files):
+            manifests[version] = data
+    versions = sorted(manifests, key=Version)
     stable_versions = [version for version in versions if not Version(version).is_prerelease]
     prerelease_versions = [version for version in versions if Version(version).is_prerelease]
     if not stable_versions:
@@ -72,21 +101,11 @@ def main() -> None:
     if not prerelease_versions:
         die(f"Found no prerelease of {PACKAGE!r} on PyPI")
 
-    groups = {f"{PACKAGE}-{version}": version for version in versions}
-    groups[f"{PACKAGE}-latest"] = stable_versions[-1]
-    groups[f"{PACKAGE}-prerelease"] = prerelease_versions[-1]
     LOCKS.mkdir(exist_ok=True)
-    for group, version in groups.items():
-        # The groups are independent: never resolve all versions together.
-        uv("add", "--frozen", "--group", group, f"{PACKAGE}=={version}")
-        uv(
-            "pip", "compile",
-            "--group", group,
-            "--universal", "--python-version", "3.11",
-            "--generate-hashes", "--no-build",
-            "--no-header", "--no-annotate",
-            "--output-file", str(LOCKS / f"{group}.txt"),
-        )
+    for version, data in manifests.items():
+        (LOCKS / f"{PACKAGE}-{version}.tsv").write_text(data)
+    (LOCKS / "latest").write_text(stable_versions[-1] + "\n")
+    (LOCKS / "prerelease").write_text(prerelease_versions[-1] + "\n")
 
     print(f"Default version: {stable_versions[-1]}", file=sys.stderr)
     print(f"Prerelease version: {prerelease_versions[-1]}", file=sys.stderr)
