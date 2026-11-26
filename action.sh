@@ -77,13 +77,9 @@ fi
 manifest="${locks}/zizmor-${zizmor_version}.tsv"
 [[ -f "${manifest}" ]] || die "Unknown version ${zizmor_version}; was it released after this action?"
 
+target="${RUNNER_OS}-${RUNNER_ARCH}"
 exe=zizmor
-if [[ ${RUNNER_OS} == Windows ]]; then
-    target="Windows-${RUNNER_ARCH}"
-    exe=zizmor.exe
-else
-    target="${RUNNER_OS}-$(uname -m)"
-fi
+[[ ${RUNNER_OS} == Windows ]] && exe=zizmor.exe
 
 while IFS=$'\t' read -r platform sha256 url; do
     [[ ${platform} == "${target}" ]] && break

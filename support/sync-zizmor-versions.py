@@ -53,7 +53,14 @@ def wheel_target(platform: str) -> str | None:
     if match := re.fullmatch(r"(musllinux|macosx)_\d+_\d+_(\w+)", platform):
         family, arch = match.groups()
         os_name = "Linux" if family == "musllinux" else "macOS"
-        return f"{os_name}-{arch}"
+        runner_arch = {
+            "x86_64": "X64",
+            "i686": "X86",
+            "armv7l": "ARM",
+            "aarch64": "ARM64",
+            "arm64": "ARM64",
+        }[arch]
+        return f"{os_name}-{runner_arch}"
 
     if platform.startswith("manylinux"):
         return None
