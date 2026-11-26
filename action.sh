@@ -33,21 +33,6 @@ output() {
 
 output="${RUNNER_TEMP}/zizmor"
 
-version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
-
-locks="${GITHUB_ACTION_PATH}/support/locks"
-case "${GHA_ZIZMOR_VERSION}" in
-    # Read the appropriate latest or prerelease version from its respective file.
-    latest|prerelease|"")
-        read -r zizmor_version < "${locks}/${GHA_ZIZMOR_VERSION:-latest}"
-        ;;
-    *)
-        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
-            || die "'version' must be 'latest', 'prerelease', or an exact X.Y.Z version (optionally with a prerelease suffix)"
-        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
-        ;;
-esac
-
 arguments=()
 arguments+=("--persona=${GHA_ZIZMOR_PERSONA}")
 
@@ -73,6 +58,21 @@ fi
 if [[ -n "${GHA_ZIZMOR_CONFIG:-}" ]]; then
     arguments+=("--config=${GHA_ZIZMOR_CONFIG}")
 fi
+
+version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
+
+locks="${GITHUB_ACTION_PATH}/support/locks"
+case "${GHA_ZIZMOR_VERSION}" in
+    # Read the appropriate latest or prerelease version from its respective file.
+    latest|prerelease|"")
+        read -r zizmor_version < "${locks}/${GHA_ZIZMOR_VERSION:-latest}"
+        ;;
+    *)
+        [[ "${GHA_ZIZMOR_VERSION}" =~ $version_regex ]] \
+            || die "'version' must be 'latest', 'prerelease', or an exact X.Y.Z version (optionally with a prerelease suffix)"
+        zizmor_version="${GHA_ZIZMOR_VERSION#v}"
+        ;;
+esac
 
 manifest="${locks}/zizmor-${zizmor_version}.tsv"
 [[ -f "${manifest}" ]] || die "Unknown version ${zizmor_version}; was it released after this action?"
