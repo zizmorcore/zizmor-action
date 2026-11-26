@@ -37,6 +37,7 @@ version_regex='^v?[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?(\.dev[0-9]+)?$'
 
 locks="${GITHUB_ACTION_PATH}/support/locks"
 case "${GHA_ZIZMOR_VERSION}" in
+    # Read the appropriate latest or prerelease version from its respective file.
     latest|prerelease|"")
         read -r zizmor_version < "${locks}/${GHA_ZIZMOR_VERSION:-latest}"
         ;;

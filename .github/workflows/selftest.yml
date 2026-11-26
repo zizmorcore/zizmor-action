@@ -25,6 +25,8 @@ jobs:
           - ubuntu-24.04-arm
           - ubuntu-slim
           - ubuntu-22.04
+          - macos-latest
+          - windows-latest
     runs-on: ${{ matrix.os }}
     permissions:
       security-events: write
