@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# action.sh: run zizmor from a hash-verified wheel
-
 set -eu
 
 dbg() {
