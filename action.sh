@@ -103,7 +103,8 @@ fi
 wheeldir=$(mktemp -d "${RUNNER_TEMP}/zizmor-wheel.XXXXXXXX")
 trap 'rm -rf "${wheeldir}"' EXIT
 wheel="${wheeldir}/zizmor.whl"
-curl --disable --fail --silent --show-error --location --proto '=https' --retry 3 --output "${wheel}" "${url}"
+curl --disable --proto '=https' --tlsv1.2 --location \
+    --fail --silent --show-error --retry 3 --output "${wheel}" "${url}"
 actual=$("${checksum[@]}" < "${wheel}")
 [[ ${actual%% *} == "${sha256}" ]] || die "SHA-256 mismatch for zizmor ${zizmor_version} on ${target}"
 
