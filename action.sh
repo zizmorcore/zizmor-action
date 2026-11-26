@@ -23,6 +23,22 @@ installed() {
     command -v "${1}" >/dev/null 2>&1
 }
 
+verify_sha256() {
+    local file="$1" expected="$2"
+    local output digest
+
+    if installed sha256sum; then
+        output=$(sha256sum -b < "$file") || return 1
+    elif installed shasum; then
+        output=$(shasum -a 256 -b < "$file") || return 1
+    else
+        die "Missing required tool: sha256sum or shasum"
+    fi
+
+    read -r digest _ <<< "$output"
+    [[ "$digest" == "$expected" ]]
+}
+
 output() {
     echo "${1}=${2}" >> "${GITHUB_OUTPUT}"
 }
@@ -87,22 +103,21 @@ done < "${manifest}"
 for tool in curl unzip; do
     installed "${tool}" || die "Missing required tool: ${tool}"
 done
-if installed sha256sum; then
-    checksum=(sha256sum -b)
-elif installed shasum; then
-    checksum=(shasum -a 256 -b)
-else
-    die "Missing required tool: sha256sum or shasum"
-fi
 
+# NOTE: We don't bother cleaning the tempdir up because this is all
+# in an ephemeral job.
 wheeldir=$(mktemp -d "${RUNNER_TEMP}/zizmor-wheel.XXXXXXXX")
-trap 'rm -rf "${wheeldir}"' EXIT
+
+# Write the wheel to `.../zizmor.whl`, regardless of its actual filename.
 wheel="${wheeldir}/zizmor.whl"
 curl --disable --proto '=https' --tlsv1.2 --location \
-    --fail --silent --show-error --retry 3 --output "${wheel}" "${url}"
-actual=$("${checksum[@]}" < "${wheel}")
-[[ ${actual%% *} == "${sha256}" ]] || die "SHA-256 mismatch for zizmor ${zizmor_version} on ${target}"
+    --fail --silent --show-error --retry 3 \
+    --output "${wheel}" "${url}"
 
+verify_sha256 "${wheel}" "${sha256}" \
+    || die "SHA-256 verification failed for zizmor ${zizmor_version} on ${target}"
+
+# Extract just the `zizmor[.exe]` binary, which is at a fixed path within the wheel.
 zizmor="${wheeldir}/${exe}"
 unzip -p "${wheel}" "zizmor-${zizmor_version}.data/scripts/${exe}" > "${zizmor}"
 chmod +x "${zizmor}"
