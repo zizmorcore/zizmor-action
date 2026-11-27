@@ -55,8 +55,6 @@ jobs:
           cat > "${RUNNER_TEMP}/zizmor-notes.md" << EOF
           zizmor ${zizmor_tag} is the default version used by this action.
 
-          Release notes for zizmor ${zizmor_tag}:
-
           ${zizmor_notes}
           EOF
 
