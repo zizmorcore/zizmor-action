@@ -1,0 +1,103 @@
+name: Release zizmor-action
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version of zizmor-action to release (no v prefix)"
+        required: true
+
+permissions: {}
+
+env:
+  GH_REPO: zizmorcore/zizmor-action
+
+jobs:
+  plan-release:
+    name: Plan ${{ inputs.version }} release
+    runs-on: ubuntu-slim
+
+    outputs:
+      release-tag: v${{ inputs.version }}
+      release-version: ${{ inputs.version }}
+      prerelease: ${{ contains(inputs.version, '-rc') }}
+
+    steps:
+      - name: Validate version
+        # TODO: This should really be an in-repo Python script.
+        run: |
+          number='(0|[1-9][0-9]*)'
+          version_pattern="^${number}[.]${number}[.]${number}(-rc[.]?${number})?$"
+          if [[ ! "${RELEASE_VERSION}" =~ ${version_pattern} ]]; then
+            echo "Expected X.Y.Z, X.Y.Z-rc.N, or X.Y.Z-rcN (no v prefix)." >&2
+            exit 1
+          fi
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-slim
+    needs: plan-release
+    permissions:
+      contents: write # for creating the release
+
+    steps:
+      - name: Fetch release notes for the pinned zizmor version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          zizmor_version=$(gh api -H 'Accept: application/vnd.github.raw+json' \
+            "repos/${GH_REPO}/contents/support/locks/latest?ref=${GITHUB_SHA}")
+          zizmor_tag="v${zizmor_version}"
+          zizmor_notes=$(gh release view "${zizmor_tag}" --repo zizmorcore/zizmor --json body --jq .body)
+
+          cat > "${RUNNER_TEMP}/zizmor-notes.md" << EOF
+          zizmor ${zizmor_tag} is the default version used by this action.
+
+          Release notes for zizmor ${zizmor_tag}:
+
+          ${zizmor_notes}
+          EOF
+
+      - name: Draft release for ${{ needs.plan-release.outputs.release-tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan-release.outputs.release-tag }}
+          PRERELEASE_FLAG: ${{ needs.plan-release.outputs.prerelease == 'true' && '--prerelease' || '' }}
+        run: |
+          # NOTE: No quotes around PRERELEASE_FLAG so that it expands to either `--prerelease` or an empty string,
+          # rather than an empty argument.
+          gh release create \
+            --draft ${PRERELEASE_FLAG} \
+            "${RELEASE_TAG}" \
+            --title "${RELEASE_TAG}" \
+            --target "${GITHUB_SHA}" \
+            --generate-notes
+
+      - name: Merge release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan-release.outputs.release-tag }}
+        run: |
+          action_notes=$(gh release view "${RELEASE_TAG}" --json body --jq .body)
+          zizmor_notes=$(<"${RUNNER_TEMP}/zizmor-notes.md")
+
+          cat > "${RUNNER_TEMP}/merged-notes.md" << EOF
+          ${zizmor_notes}
+
+          ---
+
+          zizmor-action changes:
+
+          ${action_notes}
+          EOF
+
+          gh release edit "${RELEASE_TAG}" --notes-file "${RUNNER_TEMP}/merged-notes.md"
+
+      - name: Finalize release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan-release.outputs.release-tag }}
+        run: |
+          gh release edit "${RELEASE_TAG}" --draft=false
